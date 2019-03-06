@@ -1,0 +1,6 @@
+include MANIFEST.in
+include LICENSE
+
+# Header files are not by default included in the source distribution created
+# by sdist.
+recursive-include googlecloudprofiler *.h
