@@ -49,9 +49,11 @@ if not sys.platform.startswith('linux'):
 setup(
     name='google-cloud-profiler',
     description='Stackdriver Profiler Python Agent',
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     url='https://github.com/GoogleCloudPlatform/cloud-profiler-python',
     author='Google LLC',
-    version='1.0.3',
+    version='1.0.6',
     install_requires=install_requires,
     setup_requires=['wheel'],
     packages=['googlecloudprofiler'],
