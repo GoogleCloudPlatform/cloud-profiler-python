@@ -50,13 +50,15 @@ def start(service=None,
       put things like PID or unique pod ID in the name. The string must match
       the regular expression '^[a-z]([-a-z0-9_.]{0,253}[a-z0-9])?$'.
       When not specified, the value of GAE_SERVICE environment variable will
-      be used, which is set for applications running on Google App Engine. If
-      specified neither here nor via the envrionment variable, a value error
-      will be raised.
+      be used, which is set for applications running on Google App Engine; if
+      GAE_SERVICE is not set,the value of K_VERSION environment variable, which
+      is set on Knative containers, will be used. If specified neither here nor
+      via an envrionment variable, a value error will be raised.
     service_version: An optional string specifying the version of the service.
       It can be an arbitrary string. Profiler profiles once per minute for each
       version of each service in each zone. It defaults to GAE_VERSION
-      environment variable if that is set, or to empty string otherwise.
+      environment variable if that is set, to K_REVISION environment variable
+      if that is set and GAE_VERSION is not set, and to empty string otherwise.
     project_id: A string specifying the cloud project ID. When not specified,
       the value can be read from the credential file or otherwise read from the
       VM metadata server. If specified neither here nor via the envrionment, a
@@ -96,7 +98,7 @@ def start(service=None,
       match '^[a-z]([-a-z0-9_.]{0,253}[a-z0-9])?$'. Or if called from
       a non-main thread when Wall time profiling is enabled. Or if no profiling
       mode is enabled.
-    NotImplementedError: If not run on Linux.
+    NotImplementedError: If not run on Linux or Mac.
   """
   global _started
   if _started:
@@ -104,9 +106,9 @@ def start(service=None,
                    'previously called. This function should only be called '
                    'once. This call is ignored.')
     return
-  _started = True
 
-  if not sys.platform.startswith('linux'):
+  if not (sys.platform.startswith('linux') or
+          sys.platform.startswith('darwin')):
     raise NotImplementedError('%s OS is not supported.' % (sys.platform))
 
   logging_level = [logging.ERROR, logging.WARNING, logging.INFO,
@@ -119,3 +121,5 @@ def start(service=None,
                          disable_cpu_profiling, disable_wall_profiling,
                          period_ms, discovery_service_url)
   profiler_client.start()
+
+  _started = True

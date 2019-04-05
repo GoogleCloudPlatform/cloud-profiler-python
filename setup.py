@@ -38,12 +38,21 @@ ext_module = [
         extra_link_args=['-std=c++11', '-static-libstdc++'])
 ]
 
-if not sys.platform.startswith('linux'):
+if not (sys.platform.startswith('linux') or sys.platform.startswith('darwin')):
   print(
       sys.platform, 'is not a supported operating system.\n'
       'Profiler Python agent modules will be installed but will not '
       'be functional. Refer to the documentation for a list of '
       'supported operating systems.\n')
+  ext_module = []
+
+if sys.platform.startswith('darwin'):
+  print(
+      'Profiler Python agent has limited support for ', sys.platform, '. '
+      'Wall profiler is available with supported Python versions. '
+      'CPU profiler is not available. '
+      'Refer to the documentation for a list of supported operating '
+      'systems and Python versions.\n')
   ext_module = []
 
 setup(
@@ -53,7 +62,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/GoogleCloudPlatform/cloud-profiler-python',
     author='Google LLC',
-    version='1.0.6',
+    version='1.0.8',
     install_requires=install_requires,
     setup_requires=['wheel'],
     packages=['googlecloudprofiler'],
@@ -61,12 +70,14 @@ setup(
     license='Apache License, Version 2.0',
     keywords='google cloud profiler',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ])

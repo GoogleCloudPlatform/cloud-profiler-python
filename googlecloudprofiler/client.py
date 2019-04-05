@@ -30,7 +30,7 @@ import googleapiclient.discovery
 import googleapiclient.errors
 from googlecloudprofiler import backoff
 # pylint: disable=g-import-not-at-top
-if sys.version_info >= (3, 2):
+if sys.version_info >= (3, 2) and sys.platform.startswith('linux'):
   from googlecloudprofiler import cpu_profiler
 else:
   # CPU profiling is not supported for Python older than 3.2.
@@ -138,9 +138,9 @@ class Client(object):
         envrionment, a value error will be raised.
       service: A string specifying the name of the service under which the
         profiled data will be recorded and exposed at the profiler UI for the
-        project. If specified neither here nor via the envrionment variable
-        GAE_SERVICE, a value error will be raised. See docs in __init__.py for
-        more details.
+        project. If specified neither here nor via the envrironment variable
+        GAE_SERVICE or the environment variable K_SERVICE, a value error will be
+        raised. See docs in __init__.py for more details.
       service_version: A string specifying the version of the service. See docs
         in __init__.py for more details.
       disable_cpu_profiling: A bool specifying whether or not the CPU time
@@ -148,8 +148,8 @@ class Client(object):
       disable_wall_profiling: A bool specifying whether or not the WALL time
         profiling should be disabled. See docs in __init__.py for more details.
       period_ms: An integer specifying the sampling interval in milliseconds.
-      discovery_service_url: A URL that points to the location of the
-        discovery service.
+      discovery_service_url: A URL that points to the location of the discovery
+        service.
 
     Raises:
       ValueError: If the project ID or service can't be determined from the
@@ -169,7 +169,8 @@ class Client(object):
           'Unable to determine the project ID from the environment. '
           'project ID mush be provided if running outside of GCP.')
 
-    service = service or os.environ.get('GAE_SERVICE')
+    service = service or os.environ.get('GAE_SERVICE') or os.environ.get(
+        'K_SERVICE')
     if not service:
       raise ValueError('Service name must be provided via configuration or '
                        'GAE_SERVICE environment variable.')
@@ -178,7 +179,8 @@ class Client(object):
       raise ValueError('Service name "%s" does not match regular expression '
                        '"%s"' % (service, service_re.pattern))
     deployment_labels = {_LANGUAGE_LABEL: 'python'}
-    service_version = service_version or os.environ.get('GAE_VERSION')
+    service_version = service_version or os.environ.get(
+        'GAE_VERSION') or os.environ.get('K_REVISION')
     if service_version:
       deployment_labels[_SERVICE_VERSION_LABEL] = service_version
     zone = retrieve_gce_metadata('instance/zone')
@@ -226,7 +228,8 @@ class Client(object):
     cpu_profiling_supported = cpu_profiler is not None
     if not cpu_profiling_supported:
       logger.info('CPU profiling is not supported on the current Python '
-                  'version. Python versions 3.2 and higher are supported')
+                  'version or Operating System. Python versions 3.2 and higher '
+                  'on Linux are supported.')
     elif disable_cpu_profiling:
       logger.info('CPU profiling is disabled by disable_cpu_profiling')
     else:
