@@ -283,7 +283,7 @@ func TestAgentIntegration(t *testing.T) {
 				}
 			}()
 
-			timeoutCtx, cancel := context.WithTimeout(ctx, time.Minute*10)
+			timeoutCtx, cancel := context.WithTimeout(ctx, time.Minute*20)
 			defer cancel()
 			if err := gceTr.PollForSerialOutput(timeoutCtx, &tc.InstanceConfig, benchFinishString, errorString); err != nil {
 				t.Fatal(err)
