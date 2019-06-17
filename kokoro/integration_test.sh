@@ -44,8 +44,8 @@ cp -R "kokoro" "$GOPATH/src/proftest"
 cd "$GOPATH/src/proftest"
 retry go get -t -d .
 if [ "$KOKORO_GITHUB_PULL_REQUEST_NUMBER" = "" ]; then
-  go test -timeout=20m -run TestAgentIntegration -commit="$COMMIT" -branch="$BRANCH"
+  go test -timeout=30m -run TestAgentIntegration -commit="$COMMIT" -branch="$BRANCH"
 else
-  go test -timeout=20m -run TestAgentIntegration -commit="$COMMIT" -pr="$KOKORO_GITHUB_PULL_REQUEST_NUMBER"
+  go test -timeout=30m -run TestAgentIntegration -commit="$COMMIT" -pr="$KOKORO_GITHUB_PULL_REQUEST_NUMBER"
 fi
 
