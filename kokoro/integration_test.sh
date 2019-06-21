@@ -34,12 +34,12 @@ export GCLOUD_TESTS_PYTHON_ZONE="us-west2-a"
 export GOOGLE_APPLICATION_CREDENTIALS="${KOKORO_KEYSTORE_DIR}/72935_cloud-profiler-e2e-service-account-key"
 
 # Package the agent and upload to GCS.
-python3 -m pip install --user --upgrade setuptools wheel twine
+retry python3 -m pip install --user --upgrade setuptools wheel twine
 python3 setup.py sdist
 AGENT_PATH=$(find "$PWD/dist" -name "google-cloud-profiler*")
 GCS_LOCATION="cprof-e2e-artifacts/python/kokoro/${KOKORO_JOB_TYPE}/${KOKORO_BUILD_NUMBER}"
-gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}"
-gsutil cp "${AGENT_PATH}" "gs://${GCS_LOCATION}/"
+retry gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}"
+retry gsutil cp "${AGENT_PATH}" "gs://${GCS_LOCATION}/"
 
 # Move test to go path.
 export GOPATH="$HOME/go"
