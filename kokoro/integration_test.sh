@@ -29,11 +29,17 @@ set -x
 
 cd $(dirname $0)/..
 
-COMMIT=$(git rev-parse HEAD)
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
 export GCLOUD_TESTS_PYTHON_PROJECT_ID="cloud-profiler-e2e"
 export GCLOUD_TESTS_PYTHON_ZONE="us-west2-a"
 export GOOGLE_APPLICATION_CREDENTIALS="${KOKORO_KEYSTORE_DIR}/72935_cloud-profiler-e2e-service-account-key"
+
+# Package the agent and upload to GCS.
+retry python3 -m pip install --user --upgrade setuptools wheel twine
+python3 setup.py sdist
+AGENT_PATH=$(find "$PWD/dist" -name "google-cloud-profiler*")
+GCS_LOCATION="cprof-e2e-artifacts/python/kokoro/${KOKORO_JOB_TYPE}/${KOKORO_BUILD_NUMBER}"
+retry gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}"
+retry gsutil cp "${AGENT_PATH}" "gs://${GCS_LOCATION}/"
 
 # Move test to go path.
 export GOPATH="$HOME/go"
@@ -43,9 +49,4 @@ cp -R "kokoro" "$GOPATH/src/proftest"
 # Run test.
 cd "$GOPATH/src/proftest"
 retry go get -t -d .
-if [ "$KOKORO_GITHUB_PULL_REQUEST_NUMBER" = "" ]; then
-  go test -timeout=30m -run TestAgentIntegration -commit="$COMMIT" -branch="$BRANCH"
-else
-  go test -timeout=30m -run TestAgentIntegration -commit="$COMMIT" -pr="$KOKORO_GITHUB_PULL_REQUEST_NUMBER"
-fi
-
+go test -timeout=30m -run TestAgentIntegration -gcs_location="${GCS_LOCATION}"
