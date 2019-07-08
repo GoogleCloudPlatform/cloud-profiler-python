@@ -285,10 +285,10 @@ func TestAgentIntegration(t *testing.T) {
 			endTime := timeNow.Format(time.RFC3339)
 			startTime := timeNow.Add(-1 * time.Hour).Format(time.RFC3339)
 			for pType, function := range tc.wantProfiles {
-				pr, err := gceTr.TestRunner.QueryProfiles(tc.ProjectID, tc.name, startTime, endTime, pType)
+				pr, err := gceTr.TestRunner.QueryProfilesWithZone(tc.ProjectID, tc.name, startTime, endTime, pType, zone)
 				if function == "" {
 					if err == nil {
-						t.Errorf("QueryProfiles(%s, %s, %s, %s, %s) got profile, want no profile", tc.ProjectID, tc.name, startTime, endTime, pType)
+						t.Errorf("QueryProfilesWithZone(%s, %s, %s, %s, %s, %s) got profile, want no profile", tc.ProjectID, tc.name, startTime, endTime, pType, zone)
 					}
 					continue
 				}
