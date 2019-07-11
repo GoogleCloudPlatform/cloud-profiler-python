@@ -96,6 +96,7 @@ class Client(object):
     self._backoff = backoff.Backoff()
     self._filter_log()
     self._started = False
+    self._profiler_service = None
 
   def setup_auth(self, project_id=None, service_account_json_file=None):
     """Sets up authentication with Google APIs.
@@ -307,7 +308,18 @@ class Client(object):
   def _poll_profiler_service(self):
     """Polls the profiler server stoplessly."""
     logger.debug('Profiler has started')
-    self._profiler_service = self._build_service()
+    build_service_backoff = backoff.Backoff()
+    while self._profiler_service is None:
+      try:
+        self._profiler_service = self._build_service()
+      except BaseException as e:
+        # Exponential backoff.
+        backoff_duration = build_service_backoff.next_backoff()
+        logger.error(
+            'Failed to build the Discovery client for profiler '
+            '(will retry after %.3fs): %s', backoff_duration, str(e))
+        time.sleep(backoff_duration)
+
     while True:
       profile = None
       while not profile:

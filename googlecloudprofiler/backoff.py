@@ -54,7 +54,7 @@ class Backoff(object):
     self._multiplier = multiplier
     self._current_envelope_sec = min_envelope_sec
 
-  def next_backoff(self, error):
+  def next_backoff(self, error=None):
     """Calculates the backoff duration for a failed request.
 
     Args:
