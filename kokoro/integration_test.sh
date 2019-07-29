@@ -50,3 +50,5 @@ cp -R "kokoro" "$GOPATH/src/proftest"
 cd "$GOPATH/src/proftest"
 retry go get -t -d .
 go test -timeout=30m -run TestAgentIntegration -gcs_location="${GCS_LOCATION}"
+
+

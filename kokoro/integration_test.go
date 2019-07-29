@@ -104,7 +104,7 @@ if __name__ == '__main__':
   repeat_bench(3 * 60)
 EOF
 
-# TODO(b/133360821): Stop ignoring exit code SIGALRM when b/133360821 is fixed.
+# TODO: Stop ignoring exit code SIGALRM when b/133360821 is fixed.
 {{.PythonCommand}} bench.py || [ "$?" -eq "142" ]
 
 # Indicate to test that script has finished running.

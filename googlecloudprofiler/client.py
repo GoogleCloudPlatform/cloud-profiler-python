@@ -312,7 +312,7 @@ class Client(object):
     while self._profiler_service is None:
       try:
         self._profiler_service = self._build_service()
-      except BaseException as e:
+      except BaseException as e:  # pylint: disable=broad-except
         # Exponential backoff.
         backoff_duration = build_service_backoff.next_backoff()
         logger.error(
