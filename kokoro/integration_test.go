@@ -48,15 +48,12 @@ const startupTemplate = `
 {{- template "prologue" . }}
 
 # Install dependencies.
-retry apt-get update >/dev/null
-retry apt-get install -yq git build-essential python-dev python3-dev >/dev/null
-
-# Install desired version of Python.
 {{if .InstallPythonVersion}}
-retry add-apt-repository ppa:deadsnakes/ppa >/dev/null
-retry apt-get update >/dev/null
-retry apt-get install {{.InstallPythonVersion}} >/dev/null
+# ppa:deadsnakes/ppa contains desired Python versions.
+retry add-apt-repository -y ppa:deadsnakes/ppa >/dev/null
 {{end}}
+retry apt-get update >/dev/null
+retry apt-get install -yq git build-essential {{.PythonDev}} {{if .InstallPythonVersion}}{{.InstallPythonVersion}}{{end}} >/dev/null
 
 # Install Python dependencies.
 retry wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py >/dev/null
@@ -120,6 +117,8 @@ type testCase struct {
 	installPythonVersion string
 	// Python command name, e.g "python" or "python3".
 	pythonCommand string
+	// The python-dev package to install, e.g "python-dev" or "python3.5-dev".
+	pythonDev string
 	// Used in the bench code to check the Python version, e.g
 	// "sys.version_info[:2] == (2.7)".
 	versionCheck string
@@ -136,6 +135,7 @@ func (tc *testCase) initializeStartUpScript(template *template.Template) error {
 			GCSLocation          string
 			InstallPythonVersion string
 			PythonCommand        string
+			PythonDev            string
 			VersionCheck         string
 			FinishString         string
 			ErrorString          string
@@ -144,6 +144,7 @@ func (tc *testCase) initializeStartUpScript(template *template.Template) error {
 			GCSLocation:          *gcsLocation,
 			InstallPythonVersion: tc.installPythonVersion,
 			PythonCommand:        tc.pythonCommand,
+			PythonDev:            tc.pythonDev,
 			VersionCheck:         tc.versionCheck,
 			FinishString:         benchFinishString,
 			ErrorString:          errorString,
@@ -212,6 +213,7 @@ func TestAgentIntegration(t *testing.T) {
 				"CPU": "",
 			},
 			pythonCommand: "python2.7",
+			pythonDev:     "python-dev",
 			versionCheck:  "sys.version_info[:2] == (2, 7)",
 		},
 		// Test GCE Ubuntu default Python 3, should be Python 3.6 or higher.
@@ -231,6 +233,7 @@ func TestAgentIntegration(t *testing.T) {
 				"CPU":  "repeat_bench",
 			},
 			pythonCommand: "python3",
+			pythonDev:     "python3-dev",
 			versionCheck:  "sys.version_info[:2] >= (3, 6)",
 		},
 		// Test Python 3.5.
@@ -241,9 +244,8 @@ func TestAgentIntegration(t *testing.T) {
 				Name:         fmt.Sprintf("profiler-test-python35-%s", runID),
 				MachineType:  "n1-standard-1",
 				ImageProject: "ubuntu-os-cloud",
-				// ppa:deadsnakes/ppa is not yet available on Ubuntu 18.10.
-				ImageFamily: "ubuntu-1604-lts",
-				Scopes:      []string{storageReadScope},
+				ImageFamily:  "ubuntu-1804-lts",
+				Scopes:       []string{storageReadScope},
 			},
 			name: fmt.Sprintf("profiler-test-python35-%s-gce", runID),
 			wantProfiles: map[string]string{
@@ -253,6 +255,7 @@ func TestAgentIntegration(t *testing.T) {
 			},
 			installPythonVersion: "python3.5",
 			pythonCommand:        "python3.5",
+			pythonDev:            "python3.5-dev",
 			versionCheck:         "sys.version_info[:2] == (3, 5)",
 		},
 	}
