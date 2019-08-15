@@ -241,8 +241,7 @@ func TestAgentIntegration(t *testing.T) {
 				Name:         fmt.Sprintf("profiler-test-python35-%s", runID),
 				MachineType:  "n1-standard-1",
 				ImageProject: "ubuntu-os-cloud",
-				// ppa:deadsnakes/ppa is not yet available on Ubuntu 18.10.
-				ImageFamily: "ubuntu-1604-lts",
+				ImageFamily: "ubuntu-1804-lts",
 				Scopes:      []string{storageReadScope},
 			},
 			name: fmt.Sprintf("profiler-test-python35-%s-gce", runID),
