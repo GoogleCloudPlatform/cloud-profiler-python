@@ -53,7 +53,7 @@ retry apt-get install -yq git build-essential python-dev python3-dev >/dev/null
 
 # Install desired version of Python.
 {{if .InstallPythonVersion}}
-retry add-apt-repository ppa:deadsnakes/ppa >/dev/null
+retry add-apt-repository -y ppa:deadsnakes/ppa >/dev/null
 retry apt-get update >/dev/null
 retry apt-get install {{.InstallPythonVersion}} >/dev/null
 {{end}}
