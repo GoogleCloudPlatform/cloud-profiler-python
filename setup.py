@@ -16,6 +16,7 @@
 from __future__ import print_function
 
 import glob
+import re
 import sys
 from setuptools import Extension
 from setuptools import setup
@@ -55,6 +56,23 @@ if sys.platform.startswith('darwin'):
       'systems and Python versions.\n')
   ext_module = []
 
+
+def get_version():
+  """Read the version from __init__.py."""
+
+  with open('googlecloudprofiler/__init__.py') as fp:
+    # Do not handle exceptions from open() so setup will fail when it cannot
+    # open the file
+    line = fp.read()
+    version = re.search(r"^__version__ = '([0-9]+\.[0-9]+(\.[0-9]+)?-?.*)'",
+                        line, re.M)
+    if version:
+      return version.group(1)
+
+  raise RuntimeError(
+      'Cannot determine version from googlecloudprofiler/__init__.py.')
+
+
 setup(
     name='google-cloud-profiler',
     description='Stackdriver Profiler Python Agent',
@@ -62,7 +80,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/GoogleCloudPlatform/cloud-profiler-python',
     author='Google LLC',
-    version='1.0.8',
+    version=get_version(),
     install_requires=install_requires,
     setup_requires=['wheel'],
     packages=['googlecloudprofiler'],

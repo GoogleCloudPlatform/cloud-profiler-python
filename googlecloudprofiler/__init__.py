@@ -18,6 +18,9 @@ import logging
 import sys
 from googlecloudprofiler import client
 
+# setup.py reads the version information from here to set package version
+__version__ = '1.0.8'
+
 _started = False
 
 # Adds a StreamHandler with a default Formatter to the root logger.
@@ -120,6 +123,7 @@ def start(service=None,
   profiler_client.config(project_id, service, service_version,
                          disable_cpu_profiling, disable_wall_profiling,
                          period_ms, discovery_service_url)
+  logger.info('Stackdriver Profiler Python agent version: %s', __version__)
   profiler_client.start()
 
   _started = True
