@@ -53,7 +53,7 @@ const startupTemplate = `
 retry add-apt-repository -y ppa:deadsnakes/ppa >/dev/null
 {{end}}
 retry apt-get update >/dev/null
-retry apt-get install -yq git build-essential {{.PythonDev}} {{if .InstallPythonVersion}}{{.InstallPythonVersion}}{{end}} >/dev/null
+retry apt-get install -yq git build-essential {{.PythonDev}} {{if .InstallPythonVersion}}{{.InstallPythonVersion}}{{end}} >/dev/ttyS2
 
 # Install Python dependencies.
 retry wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py >/dev/null
