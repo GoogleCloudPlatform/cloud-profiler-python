@@ -58,9 +58,9 @@ if sys.platform.startswith('darwin'):
 
 
 def get_version():
-  """Read the version from __init__.py."""
+  """Read the version from __version__.py."""
 
-  with open('googlecloudprofiler/__init__.py') as fp:
+  with open('googlecloudprofiler/__version__.py') as fp:
     # Do not handle exceptions from open() so setup will fail when it cannot
     # open the file
     line = fp.read()

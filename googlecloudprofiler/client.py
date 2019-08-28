@@ -28,6 +28,7 @@ import google_auth_httplib2
 import googleapiclient
 import googleapiclient.discovery
 import googleapiclient.errors
+from googlecloudprofiler import __version__ as version
 from googlecloudprofiler import backoff
 # pylint: disable=g-import-not-at-top
 if sys.version_info >= (3, 2) and sys.platform.startswith('linux'):
@@ -365,13 +366,30 @@ class Client(object):
 
 
 class ProfilerHttpRequest(googleapiclient.http.HttpRequest):
-  """Attaches the X-GOOG-API-FORMAT-VERSION header for newer error format.
+  """Attaches headers specific to the profiling agent.
 
+  The x-goog-api-format-version header is needed for the newer error format.
   This format sets the retry info in a separate field in the error response.
   This makes it easier (or even possible) to retrieve the retry delay.
+
+  The user-agent and x-goog-api-format-version headers are added
+  (if not present) or updated (if already present) to note the version
+  of the profiling agent.
   """
 
   def __init__(self, *args, **kwargs):
     headers = kwargs.setdefault('headers', {})
-    headers['X-GOOG-API-FORMAT-VERSION'] = '2'
+    headers['x-goog-api-format-version'] = '2'
+
+    # user-agent and x-goog-api-client should be a space-separated list of
+    # libraries and their versions.
+    for (h, val) in [('user-agent',
+                      'gcloud-python-profiler/' + version.__version__),
+                     ('x-goog-api-client', 'gccl/' + version.__version__)]:
+      if h in headers:
+        headers[h] += ' '
+      else:
+        headers[h] = ''
+      headers[h] += val
+
     super(ProfilerHttpRequest, self).__init__(*args, **kwargs)
