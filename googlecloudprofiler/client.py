@@ -61,6 +61,8 @@ _INSTANCE_LABEL = 'instance'
 _ZONE_LABEL = 'zone'
 _LANGUAGE_LABEL = 'language'
 
+_PROFILER_SERVICE_TIMEOUT_SEC = 60 * 60
+
 _NANOS_PER_SEC = 1000 * 1000 * 1000
 
 logger = logging.getLogger(__name__)
@@ -256,7 +258,7 @@ class Client(object):
 
   def _build_service(self):
     """Builds a discovery client for talking to the Profiler."""
-    http = httplib2.Http()
+    http = httplib2.Http(timeout=_PROFILER_SERVICE_TIMEOUT_SEC)
     http = google_auth_httplib2.AuthorizedHttp(self._credentials, http)
     profiler_api = googleapiclient.discovery.build(
         'cloudprofiler',
