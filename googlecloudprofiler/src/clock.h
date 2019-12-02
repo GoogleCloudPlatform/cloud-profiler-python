@@ -19,6 +19,7 @@
 #include <time.h>
 
 static const int64_t kNanosPerSecond = 1000 * 1000 * 1000;
+static const int64_t kMicrosPerSecond = 1000 * 1000;
 static const int64_t kNanosPerMilli = 1000 * 1000;
 
 // Clock interface that can be mocked for tests. The default implementation

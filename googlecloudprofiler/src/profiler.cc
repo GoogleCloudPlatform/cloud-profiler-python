@@ -93,8 +93,8 @@ bool CodeDeallocHook::Find(PyCodeObject *pointer, FuncLoc *func_loc) {
 // This method schedules the SIGPROF timer to go off every specified interval.
 bool SignalHandler::SetSigprofInterval(int64_t period_usec) {
   static struct itimerval timer;
-  timer.it_interval.tv_sec = 0;
-  timer.it_interval.tv_usec = period_usec;
+  timer.it_interval.tv_sec = period_usec / kMicrosPerSecond;
+  timer.it_interval.tv_usec = period_usec % kMicrosPerSecond;
   timer.it_value = timer.it_interval;
   if (setitimer(ITIMER_PROF, &timer, NULL) == -1) {
     LogError("Failed to set ITIMER_PROF: %s", strerror(errno));
