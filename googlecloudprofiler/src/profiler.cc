@@ -15,7 +15,6 @@
 #include "profiler.h"
 
 #include <errno.h>
-#include <execinfo.h>
 #include <pythread.h>
 #include <sys/time.h>
 #include <sys/ucontext.h>
