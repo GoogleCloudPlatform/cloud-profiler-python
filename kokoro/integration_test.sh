@@ -43,14 +43,11 @@ GCS_LOCATION="cprof-e2e-artifacts/python/kokoro/${KOKORO_JOB_TYPE}/${KOKORO_BUIL
 retry gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}"
 retry gsutil cp "${AGENT_PATH}" "gs://${GCS_LOCATION}/"
 
-# Move test to go path.
-export GOPATH="$HOME/go"
-mkdir -p "$GOPATH/src"
-cp -R "kokoro" "$GOPATH/src/proftest"
-
 # Run test.
-cd "$GOPATH/src/proftest"
-retry go get -t -d .
+cd "kokoro"
+
+# Initializing go modules allows our dependencies to install versions of their
+# dependencies specified by their go.mod files. This reduces the likelihood of
+# dependencies breaking this test.
+retry go mod init e2e
 go test -timeout=30m -run TestAgentIntegration -gcs_location="${GCS_LOCATION}"
-
-
