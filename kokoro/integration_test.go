@@ -62,17 +62,21 @@ retry wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py >/dev/null
 retry {{.PythonCommand}} /tmp/get-pip.py >/dev/null
 retry {{.PythonCommand}} -m pip install --upgrade pyasn1 >/dev/null
 
+# Setup pipenv
+retry {{.PythonCommand}} -m pip install pipenv > /dev/null
+mkdir bench && cd bench
+retry pipenv install > /dev/null
+
+
 # Fetch agent.
 mkdir /tmp/agent
 retry gsutil cp gs://{{.GCSLocation}}/* /tmp/agent
 
 # Install agent.
-{{.PythonCommand}} -m pip install "$(find /tmp/agent -name "google-cloud-profiler*")"
+pipenv run {{.PythonCommand}} -m pip install "$(find /tmp/agent -name "google-cloud-profiler*")"
 
 # Run bench app.
 export BENCH_DIR="$HOME/bench"
-mkdir -p $BENCH_DIR
-cd $BENCH_DIR
 
 cat << EOF > bench.py
 import googlecloudprofiler
@@ -104,7 +108,7 @@ if __name__ == '__main__':
 EOF
 
 # TODO: Stop ignoring exit code SIGALRM when b/133360821 is fixed.
-{{.PythonCommand}} bench.py || [ "$?" -eq "142" ]
+pipenv run {{.PythonCommand}} bench.py || [ "$?" -eq "142" ]
 
 # Indicate to test that script has finished running.
 echo "{{.FinishString}}"
