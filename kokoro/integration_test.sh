@@ -49,5 +49,6 @@ cd "kokoro"
 # Initializing go modules allows our dependencies to install versions of their
 # dependencies specified by their go.mod files. This reduces the likelihood of
 # dependencies breaking this test.
-retry go mod init e2e
+go mod init e2e
+retry go get -d .
 go test -timeout=30m -run TestAgentIntegration -gcs_location="${GCS_LOCATION}"
