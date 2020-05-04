@@ -51,6 +51,6 @@ cd "kokoro"
 # dependencies breaking this test.
 go mod init e2e
 
-# Compile test before running to download dependencies.
+# Compile the test before running to download dependencies.
 retry go test -c
 ./e2e.test  -gcs_location="${GCS_LOCATION}"
