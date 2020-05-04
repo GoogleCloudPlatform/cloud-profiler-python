@@ -50,5 +50,7 @@ cd "kokoro"
 # dependencies specified by their go.mod files. This reduces the likelihood of
 # dependencies breaking this test.
 go mod init e2e
-retry go get -d .
-go test -timeout=30m -run TestAgentIntegration -gcs_location="${GCS_LOCATION}"
+
+# Compile test before running to download dependencies.
+go test -c
+./e2e.test  -gcs_location="${GCS_LOCATION}"
