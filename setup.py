@@ -85,7 +85,7 @@ def get_version():
 
 setup(
     name='google-cloud-profiler',
-    description='Stackdriver Profiler Python Agent',
+    description='Google Cloud Profiler Python Agent',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/GoogleCloudPlatform/cloud-profiler-python',

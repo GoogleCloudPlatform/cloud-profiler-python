@@ -121,7 +121,7 @@ def start(service=None,
   profiler_client.config(project_id, service, service_version,
                          disable_cpu_profiling, disable_wall_profiling,
                          period_ms, discovery_service_url)
-  logger.info('Stackdriver Profiler Python agent version: %s',
+  logger.info('Google Cloud Profiler Python agent version: %s',
               version.__version__)
   profiler_client.start()
 

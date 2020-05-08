@@ -1,7 +1,7 @@
-# Stackdriver Python profiling agent
+# Google Cloud Python profiling agent
 
 Python profiling agent for
-[Stackdriver Profiler](https://cloud.google.com/profiler/).
+[Google Cloud Profiler](https://cloud.google.com/profiler/).
 
 ## Installation & usage
 
@@ -34,5 +34,5 @@ Python profiling agent for
     ```
 
 See
-[Stackdriver Profiler profiling Python code](https://cloud.google.com/profiler/docs/profiling-python)
+[Google Cloud Profiler profiling Python code](https://cloud.google.com/profiler/docs/profiling-python)
 for detailed documentation.
