@@ -54,3 +54,23 @@ go mod init e2e
 # Compile test before running to download dependencies.
 retry go test -c
 ./e2e.test  -gcs_location="${GCS_LOCATION}"
+
+# Exit with success code if no need to release the agent.
+if [[ "$KOKORO_JOB_TYPE" != "RELEASE" ]]; then
+  exit 0
+fi
+
+# Release the agent to PyPI.
+PYPI_PASSWORD="$(cat "$KOKORO_KEYSTORE_DIR"/72935_pypi-google-cloud-profiler-team-password)"
+cat >~/.pypirc <<EOF
+[distutils]
+index-servers =
+   pypi
+
+[pypi]
+username:google-cloud-profiler-team
+password:${PYPI_PASSWORD}
+
+EOF
+
+python3 -m twine upload "${AGENT_PATH}"
