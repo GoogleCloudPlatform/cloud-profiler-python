@@ -21,9 +21,6 @@ from googlecloudprofiler import client
 
 _started = False
 
-# Adds a StreamHandler with a default Formatter to the root logger.
-# It does nothing if the root logger already has handlers.
-logging.basicConfig()
 logger = logging.getLogger(__name__)
 
 
@@ -107,6 +104,10 @@ def start(service=None,
                    'previously called. This function should only be called '
                    'once. This call is ignored.')
     return
+
+  # Adds a StreamHandler with a default Formatter to the root logger.
+  # It does nothing if the root logger already has handlers.
+  logging.basicConfig()
 
   if not (sys.platform.startswith('linux') or
           sys.platform.startswith('darwin')):
