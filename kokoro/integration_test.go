@@ -55,7 +55,7 @@ retry add-apt-repository -y ppa:deadsnakes/ppa >/dev/null
 # Force IPv4 to prevent long IPv6 timeouts.
 # TODO : Validate this solves the issue. Remove if not.
 retry apt-get -o Acquire::ForceIPv4=true update >/dev/null
-retry apt-get -o Acquire::ForceIPv4=true install -yq git build-essential {{.PythonDev}} {{if .InstallPythonVersion}}{{.InstallPythonVersion}}{{end}} >/dev/ttyS2
+retry apt-get -o Acquire::ForceIPv4=true install -yq git build-essential python3-distutils {{.PythonDev}} {{if .InstallPythonVersion}}{{.InstallPythonVersion}}{{end}} >/dev/ttyS2
 
 # Install Python dependencies.
 retry wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py >/dev/null
