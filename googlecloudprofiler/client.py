@@ -304,7 +304,8 @@ class Client(object):
       profile_bytes = self._profilers[profile_type].profile(duration_ns)
       profile['profileBytes'] = base64.b64encode(profile_bytes).decode('UTF-8')
       logger.debug('Starting to upload profile')
-      self._profiler_service.patch(name=profile['name'], body=profile).execute()
+      self._profiler_service.patch(
+          name=profile['name'], body=profile).execute(num_retries=3)
     except BaseException as e:
       logger.error('Failed to collect and upload profile: %s', str(e))
 
