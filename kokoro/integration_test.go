@@ -73,7 +73,7 @@ mkdir /tmp/agent
 retry gsutil cp gs://{{.GCSLocation}}/* /tmp/agent
 
 # Install agent.
-pipenv run {{.PythonCommand}} -m pip install "$(find /tmp/agent -name "google-cloud-profiler*")"
+retry pipenv run {{.PythonCommand}} -m pip install "$(find /tmp/agent -name "google-cloud-profiler*")"
 
 # Run bench app.
 export BENCH_DIR="$HOME/bench"
