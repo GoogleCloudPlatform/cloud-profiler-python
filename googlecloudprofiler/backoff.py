@@ -14,6 +14,7 @@
 
 """Implements profiler backoff."""
 
+import errno
 import json
 import logging
 import random
@@ -64,7 +65,14 @@ class Backoff(object):
       A float representing the desired backoff duration in seconds.
     """
     try:
-      if isinstance(error, googleapiclient.errors.HttpError):
+      # Add short retry period for "broken pipe" exception. See b/158130635 for
+      # more details.
+      if isinstance(error, OSError) and error.errno == errno.EPIPE:
+        broken_pipe_sec = random.uniform(1, 10)
+        logger.error('Agent will back off for %.3f seconds due to %s',
+                     broken_pipe_sec, str(error))
+        return broken_pipe_sec
+      elif isinstance(error, googleapiclient.errors.HttpError):
         content = json.loads(error.content.decode('utf-8'))
         for detail in content.get('error', {}).get('details', []):
           if 'retryDelay' in detail:
@@ -72,7 +80,7 @@ class Backoff(object):
             json_format.Parse(json.dumps(detail['retryDelay']), delay)
             return delay.seconds + float(delay.nanos) / _NANOS_PER_SEC
     # It's safe to catch BaseException because this runs in a daemon thread.
-    except BaseException as e:
+    except BaseException as e:  # pylint: disable=broad-except
       logger.error(
           'Failed to extract server-specified backoff duration '
           '(will use exponential backoff): %s', str(e))
