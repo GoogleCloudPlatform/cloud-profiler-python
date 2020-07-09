@@ -164,7 +164,7 @@ class Client(object):
     self._profilers = {}
     self._config_cpu_profiling(disable_cpu_profiling, period_ms)
     self._config_wall_profiling(disable_wall_profiling, period_ms)
-    if len(self._profilers) is 0:
+    if not self._profilers:
       raise ValueError('No profiling mode is enabled.')
 
     project_id = project_id or retrieve_gce_metadata('project/project-id')
