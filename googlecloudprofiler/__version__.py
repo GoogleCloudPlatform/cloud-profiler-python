@@ -16,4 +16,4 @@
 """Version of Python Cloud Profiler module."""
 
 # setup.py reads the version information from here to set package version
-__version__ = '1.1.3'
+__version__ = '2.0.0'

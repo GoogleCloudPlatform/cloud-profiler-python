@@ -117,6 +117,11 @@ def start(service=None,
                    logging.DEBUG][min(verbose, 3)]
   logger.setLevel(logging_level)
 
+  if sys.version_info < (3, 2):
+    logger.warning(
+        'Python version %d.%d is not supported. Minimum supported '
+        'Python version is 3.2.', sys.version_info[0], sys.version_info[1])
+
   profiler_client = client.Client()
   project_id = profiler_client.setup_auth(project_id, service_account_json_file)
   profiler_client.config(project_id, service, service_version,

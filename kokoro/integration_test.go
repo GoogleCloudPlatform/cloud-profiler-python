@@ -201,27 +201,6 @@ func TestAgentIntegration(t *testing.T) {
 	}
 
 	testcases := []testCase{
-		// Test GCE Ubuntu default Python 2, should be Python 2.7.
-		{
-			InstanceConfig: proftest.InstanceConfig{
-				ProjectID:    projectID,
-				Zone:         zone,
-				Name:         fmt.Sprintf("profiler-test-python2-%s", runID),
-				MachineType:  "n1-standard-1",
-				ImageProject: "ubuntu-os-cloud",
-				ImageFamily:  "ubuntu-1804-lts",
-				Scopes:       []string{storageReadScope},
-			},
-			name: fmt.Sprintf("profiler-test-python2-%s-gce", runID),
-			wantProfiles: map[string]string{
-				"WALL": "repeat_bench",
-				// CPU profiling should be disabled on Python 2.
-				"CPU": "",
-			},
-			pythonCommand: "python2.7",
-			pythonDev:     "python-dev",
-			versionCheck:  "sys.version_info[:2] == (2, 7)",
-		},
 		// Test GCE Ubuntu default Python 3, should be Python 3.6 or higher.
 		{
 			InstanceConfig: proftest.InstanceConfig{
