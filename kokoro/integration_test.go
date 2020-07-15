@@ -34,18 +34,31 @@ import (
 
 var (
 	gcsLocation       = flag.String("gcs_location", "", "GCS location for the agent")
+	runBackoffTest    = flag.Bool("run_backoff_test", false, "Enables the backoff integration test. This integration test requires over 45 mins to run, so it is not run by default.")
 	runID             = strings.Replace(time.Now().Format("2006-01-02-15-04-05.000000-0700"), ".", "-", -1)
-	benchFinishString = "busybench finished profiling"
+	benchFinishString = "benchmark application(s) complete"
 	errorString       = "failed to set up or run the benchmark"
 )
 
 const (
 	cloudScope       = "https://www.googleapis.com/auth/cloud-platform"
 	storageReadScope = "https://www.googleapis.com/auth/devstorage.read_only"
+
+	gceBenchDuration = 600 * time.Second
+	gceTestTimeout   = 20 * time.Minute
+
+	// For any agents to receive backoff, there must be more than 32 agents in
+	// the deployment. The initial backoff received will be 33 minutes; each
+	// subsequent backoff will be one minute longer. Running 45 benchmarks for
+	// 45 minutes will ensure that several agents receive backoff responses and
+	// are able to wait for the backoff duration then send another request.
+	numBackoffBenchmarks = 45
+	backoffBenchDuration = 45 * time.Minute
+	backoffTestTimeout   = 60 * time.Minute
 )
 
 const startupTemplate = `
-{{- template "prologue" . }}
+{{ define "setup"}}
 
 # Install dependencies.
 {{if .InstallPythonVersion}}
@@ -75,7 +88,7 @@ retry gsutil cp gs://{{.GCSLocation}}/* /tmp/agent
 # Install agent.
 retry pipenv run {{.PythonCommand}} -m pip install "$(find /tmp/agent -name "google-cloud-profiler*")"
 
-# Run bench app.
+# Write bench app.
 export BENCH_DIR="$HOME/bench"
 
 cat << EOF > bench.py
@@ -104,9 +117,16 @@ if __name__ == '__main__':
       verbose=3)
   except BaseException:
     sys.exit('Failed to start the profiler: %s' % traceback.format_exc())
-  repeat_bench(3 * 60)
+  repeat_bench({{.DurationSec}})
 EOF
 
+{{- end }}
+
+{{ define "integration" -}}
+{{- template "prologue" . }}
+{{- template "setup" . }}
+
+# Run bench app.
 # TODO: Stop ignoring exit code SIGALRM when b/133360821 is fixed.
 pipenv run {{.PythonCommand}} bench.py || [ "$?" -eq "142" ]
 
@@ -114,6 +134,32 @@ pipenv run {{.PythonCommand}} bench.py || [ "$?" -eq "142" ]
 echo "{{.FinishString}}"
 
 {{ template "epilogue" . -}}
+{{end}}
+
+{{ define "integration_backoff" -}}
+{{- template "prologue" . }}
+{{- template "setup" . }}
+
+# Do not display commands being run to simplify logging output.
+set +x
+
+echo "Starting {{.NumBackoffBenchmarks}} benchmarks."
+for (( i = 0; i < {{.NumBackoffBenchmarks}}; i++ )); do
+  # TODO: Stop ignoring exit code SIGALRM when b/133360821 is fixed.
+	(pipenv run {{.PythonCommand}} bench.py) |& while read line; \
+	     do echo "benchmark $i: ${line}"; done || [ "$?" -eq "142" ] &
+done
+echo "Successfully started {{.NumBackoffBenchmarks}} benchmarks."
+
+wait
+
+# Continue displaying commands being run.
+set -x
+
+echo "{{.FinishString}}"
+
+{{ template "epilogue" . -}}
+{{ end }}
 `
 
 type testCase struct {
@@ -128,33 +174,51 @@ type testCase struct {
 	// Used in the bench code to check the Python version, e.g
 	// "sys.version_info[:2] == (2.7)".
 	versionCheck string
+	// Timeout for the integration test.
+	timeout time.Duration
+	// When true, a backoff test should be run. Otherwise, run a standard
+	// integration test.
+	backoffTest bool
+	// Duration for which benchmark application should run.
+	benchDuration time.Duration
 	// Maps profile type to function name wanted for that type. Empty function
-	// name means the type should not be profiled.
+	// name means the type should not be profiled. Only used when backoffTest is
+	// false.
 	wantProfiles map[string]string
 }
 
 func (tc *testCase) initializeStartUpScript(template *template.Template) error {
+	params := struct {
+		Service              string
+		GCSLocation          string
+		InstallPythonVersion string
+		PythonCommand        string
+		PythonDev            string
+		VersionCheck         string
+		FinishString         string
+		ErrorString          string
+		DurationSec          int
+		NumBackoffBenchmarks int
+	}{
+		Service:              tc.name,
+		GCSLocation:          *gcsLocation,
+		InstallPythonVersion: tc.installPythonVersion,
+		PythonCommand:        tc.pythonCommand,
+		PythonDev:            tc.pythonDev,
+		VersionCheck:         tc.versionCheck,
+		FinishString:         benchFinishString,
+		ErrorString:          errorString,
+		DurationSec:          int(tc.benchDuration.Seconds()),
+	}
+
+	testTemplate := "integration"
+	if tc.backoffTest {
+		testTemplate = "integration_backoff"
+		params.NumBackoffBenchmarks = numBackoffBenchmarks
+	}
+
 	var buf bytes.Buffer
-	err := template.Execute(&buf,
-		struct {
-			Service              string
-			GCSLocation          string
-			InstallPythonVersion string
-			PythonCommand        string
-			PythonDev            string
-			VersionCheck         string
-			FinishString         string
-			ErrorString          string
-		}{
-			Service:              tc.name,
-			GCSLocation:          *gcsLocation,
-			InstallPythonVersion: tc.installPythonVersion,
-			PythonCommand:        tc.pythonCommand,
-			PythonDev:            tc.pythonDev,
-			VersionCheck:         tc.versionCheck,
-			FinishString:         benchFinishString,
-			ErrorString:          errorString,
-		})
+	err := template.Lookup(testTemplate).Execute(&buf, params)
 	if err != nil {
 		return fmt.Errorf("failed to render startup script for %s: %v", tc.name, err)
 	}
@@ -220,6 +284,8 @@ func TestAgentIntegration(t *testing.T) {
 			pythonCommand: "python3",
 			pythonDev:     "python3-dev",
 			versionCheck:  "sys.version_info[:2] >= (3, 6)",
+			timeout:       gceTestTimeout,
+			benchDuration: gceBenchDuration,
 		},
 		// Test Python 3.5.
 		{
@@ -242,7 +308,40 @@ func TestAgentIntegration(t *testing.T) {
 			pythonCommand:        "python3.5",
 			pythonDev:            "python3.5-dev",
 			versionCheck:         "sys.version_info[:2] == (3, 5)",
+			timeout:              gceTestTimeout,
+			benchDuration:        gceBenchDuration,
 		},
+	}
+
+	if *runBackoffTest {
+		testcases = append(testcases,
+			testCase{
+				// Test GCE Ubuntu default Python 3, should be Python 3.6 or higher.
+				InstanceConfig: proftest.InstanceConfig{
+					ProjectID:    projectID,
+					Zone:         zone,
+					Name:         fmt.Sprintf("profiler-test-python3-backoff-%s", runID),
+					ImageProject: "ubuntu-os-cloud",
+					ImageFamily:  "ubuntu-1804-lts",
+					Scopes:       []string{storageReadScope},
+
+					// Running many copies of the benchmark requires more
+					// memory than is available on an n1-standard-1. Use a
+					// machine type with more memory for backoff test.
+					MachineType: "n1-highmem-2",
+				},
+				name: fmt.Sprintf("profiler-test-python3-backoff-%s-gce", runID),
+				wantProfiles: map[string]string{
+					"WALL": "repeat_bench",
+					"CPU":  "repeat_bench",
+				},
+				pythonCommand: "python3",
+				pythonDev:     "python3-dev",
+				versionCheck:  "sys.version_info[:2] >= (3, 6)",
+				timeout:       backoffTestTimeout,
+				benchDuration: backoffBenchDuration,
+				backoffTest:   true,
+			})
 	}
 
 	// Allow test cases to run in parallel.
@@ -263,10 +362,18 @@ func TestAgentIntegration(t *testing.T) {
 				}
 			}()
 
-			timeoutCtx, cancel := context.WithTimeout(ctx, time.Minute*20)
+			timeoutCtx, cancel := context.WithTimeout(ctx, tc.timeout)
 			defer cancel()
-			if err := gceTr.PollForSerialOutput(timeoutCtx, &tc.InstanceConfig, benchFinishString, errorString); err != nil {
+			output, err := gceTr.PollForAndReturnSerialOutput(timeoutCtx, &tc.InstanceConfig, benchFinishString, errorString)
+			if err != nil {
 				t.Fatal(err)
+			}
+
+			if tc.backoffTest {
+				if err := proftest.CheckSerialOutputForBackoffs(output, numBackoffBenchmarks, "generic::aborted: action throttled, backoff for", "Starting to create profile", "benchmark"); err != nil {
+					t.Errorf("failed to check serial output for backoffs: %v", err)
+				}
+				return
 			}
 
 			timeNow := time.Now()

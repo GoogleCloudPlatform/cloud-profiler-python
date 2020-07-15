@@ -47,14 +47,21 @@ retry gsutil cp "${AGENT_PATH}" "gs://${GCS_LOCATION}/"
 # Run test.
 cd "kokoro"
 
+# Backoff test should not be run on presubmit.
+RUN_BACKOFF_TEST="true"
+if [[ "$KOKORO_JOB_TYPE" == "PRESUBMIT_GITHUB" ]]; then
+  RUN_BACKOFF_TEST="false"
+fi
+
 # Initializing go modules allows our dependencies to install versions of their
 # dependencies specified by their go.mod files. This reduces the likelihood of
 # dependencies breaking this test.
 go mod init e2e
 
 # Compile test before running to download dependencies.
+retry go get cloud.google.com/go/profiler/proftest@HEAD
 retry go test -c
-./e2e.test  -gcs_location="${GCS_LOCATION}"
+./e2e.test  -gcs_location="${GCS_LOCATION}" -run_backoff_test=$RUN_BACKOFF_TEST
 
 # Exit with success code if no need to release the agent.
 if [[ "$KOKORO_JOB_TYPE" != "RELEASE" ]]; then
