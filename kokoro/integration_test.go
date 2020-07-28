@@ -126,6 +126,9 @@ EOF
 {{- template "prologue" . }}
 {{- template "setup" . }}
 
+# Log the core file when failed with SIGABRT.
+trap 'cat /core' SIGABRT
+
 # Run bench app.
 # TODO: Stop ignoring exit code SIGALRM when b/133360821 is fixed.
 pipenv run {{.PythonCommand}} bench.py || [ "$?" -eq "142" ]
