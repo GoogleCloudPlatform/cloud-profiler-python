@@ -337,7 +337,7 @@ class Client(object):
           # Uses the server specified backoff duration if it is present in the
           # error message, otherwise uses exponential backoff.
           backoff_duration = self._backoff.next_backoff(e)
-          logger.error('Failed to create profile (will retry after %.3fs): %s',
+          logger.debug('Failed to create profile (will retry after %.3fs): %s',
                        backoff_duration, str(e))
           time.sleep(backoff_duration)
 
