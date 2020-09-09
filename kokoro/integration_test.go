@@ -127,8 +127,7 @@ EOF
 {{- template "setup" . }}
 
 # Run bench app.
-# TODO: Stop ignoring exit code SIGALRM when b/133360821 is fixed.
-pipenv run {{.PythonCommand}} bench.py || [ "$?" -eq "142" ]
+pipenv run {{.PythonCommand}} bench.py
 
 # Indicate to test that script has finished running.
 echo "{{.FinishString}}"
@@ -145,9 +144,8 @@ set +x
 
 echo "Starting {{.NumBackoffBenchmarks}} benchmarks."
 for (( i = 0; i < {{.NumBackoffBenchmarks}}; i++ )); do
-  # TODO: Stop ignoring exit code SIGALRM when b/133360821 is fixed.
 	(pipenv run {{.PythonCommand}} bench.py) |& while read line; \
-	     do echo "benchmark $i: ${line}"; done || [ "$?" -eq "142" ] &
+	     do echo "benchmark $i: ${line}"; done &
 done
 echo "Successfully started {{.NumBackoffBenchmarks}} benchmarks."
 
