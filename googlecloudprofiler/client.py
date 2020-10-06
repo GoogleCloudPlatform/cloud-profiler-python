@@ -260,6 +260,8 @@ class Client(object):
     """Builds a discovery client for talking to the Profiler."""
     http = httplib2.Http(timeout=_PROFILER_SERVICE_TIMEOUT_SEC)
     http = google_auth_httplib2.AuthorizedHttp(self._credentials, http)
+
+    logger.debug('Building discover API client')
     profiler_api = googleapiclient.discovery.build(
         'cloudprofiler',
         'v2',
@@ -267,6 +269,7 @@ class Client(object):
         cache_discovery=False,
         requestBuilder=ProfilerHttpRequest,
         discoveryServiceUrl=self._discovery_service_url)
+    logger.debug('Built discover API client')
     return profiler_api.projects().profiles()
 
   def _create_profile(self):

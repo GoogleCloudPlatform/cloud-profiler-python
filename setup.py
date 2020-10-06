@@ -24,7 +24,7 @@ from setuptools import setup
 install_requires = [
     # google-api-python-client V1.12.0 has an known issue,see
     # https://github.com/googleapis/google-api-python-client/issues/1029.
-    'google-api-python-client!=1.12.0',
+    'google-api-python-client>=1.12.3',
     'google-auth>=1.0.0',
     'google-auth-httplib2',
     'protobuf',

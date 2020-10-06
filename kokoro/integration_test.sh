@@ -32,7 +32,7 @@ cd $(dirname $0)/..
 
 export GCLOUD_TESTS_PYTHON_PROJECT_ID="cloud-profiler-e2e"
 
-export GCLOUD_TESTS_PYTHON_ZONE="us-west2-a"
+export GCLOUD_TESTS_PYTHON_ZONE="us-west3-a"
 
 export GOOGLE_APPLICATION_CREDENTIALS="${KOKORO_KEYSTORE_DIR}/72935_cloud-profiler-e2e-service-account-key"
 
