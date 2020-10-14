@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Communicates with the profiler backend over HTTP."""
 
 import base64
@@ -74,8 +73,8 @@ def retrieve_gce_metadata(metadata_key):
   Args:
     metadata_key: A string specifying the metadata key, e.g
       'project/project-id'. See
-      https://cloud.google.com/compute/docs/storing-retrieving-metadata for
-      the list of keys.
+      https://cloud.google.com/compute/docs/storing-retrieving-metadata for the
+      list of keys.
 
   Returns:
     A string representing the metadata value, or None if not found.

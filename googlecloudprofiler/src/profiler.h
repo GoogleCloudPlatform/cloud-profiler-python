@@ -16,8 +16,8 @@
 #define GOOGLECLOUDPROFILER_SRC_PROFILER_H_
 
 #include <Python.h>
-
 #include <signal.h>
+
 #include <atomic>
 #include <memory>
 #include <string>

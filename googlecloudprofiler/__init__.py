@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Init module for Python Cloud Profiler."""
 
 import logging
@@ -46,17 +45,17 @@ def start(service=None,
       project. The string should be the same across different replicas of your
       service so that the globally constant profiling rate is maintained. Do not
       put things like PID or unique pod ID in the name. The string must match
-      the regular expression '^[a-z]([-a-z0-9_.]{0,253}[a-z0-9])?$'.
-      When not specified, the value of GAE_SERVICE environment variable will
-      be used, which is set for applications running on Google App Engine; if
-      GAE_SERVICE is not set,the value of K_VERSION environment variable, which
-      is set on Knative containers, will be used. If specified neither here nor
-      via an envrionment variable, a value error will be raised.
+      the regular expression '^[a-z]([-a-z0-9_.]{0,253}[a-z0-9])?$'. When not
+      specified, the value of GAE_SERVICE environment variable will be used,
+      which is set for applications running on Google App Engine; if GAE_SERVICE
+      is not set,the value of K_VERSION environment variable, which is set on
+      Knative containers, will be used. If specified neither here nor via an
+      envrionment variable, a value error will be raised.
     service_version: An optional string specifying the version of the service.
       It can be an arbitrary string. Profiler profiles once per minute for each
       version of each service in each zone. It defaults to GAE_VERSION
-      environment variable if that is set, to K_REVISION environment variable
-      if that is set and GAE_VERSION is not set, and to empty string otherwise.
+      environment variable if that is set, to K_REVISION environment variable if
+      that is set and GAE_VERSION is not set, and to empty string otherwise.
     project_id: A string specifying the cloud project ID. When not specified,
       the value can be read from the credential file or otherwise read from the
       VM metadata server. If specified neither here nor via the envrionment, a
@@ -79,10 +78,10 @@ def start(service=None,
       signal module. It only profiles the main thread. The start function must
       be called from the main thread if wall time profiling is enabled.
       Using SIGALRM signal after starting the profiler will cause problems:
-      registering a handler for SIGALRM will prevent the profiler from working.
-      SIGALRM will be trigger by the profiler at unpredictable time. Wall
-      profiling has some other limitations as documented in the pythonprofiler
-      module.
+      registering a handler for SIGALRM will prevent the profiler from
+      working. SIGALRM will be trigger by the profiler at unpredictable time.
+      Wall profiling has some other limitations as documented in the
+      pythonprofiler module.
     period_ms: An optional integer specifying the sampling interval in
       milliseconds. Applies to both CPU profiling and wall profiling. Defaults
       to 10.
