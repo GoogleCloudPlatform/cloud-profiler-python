@@ -71,7 +71,7 @@ retry apt-get -o Acquire::ForceIPv4=true update >/dev/null
 retry apt-get -o Acquire::ForceIPv4=true install -yq git build-essential python3-distutils {{.PythonDev}} {{if .InstallPythonVersion}}{{.InstallPythonVersion}}{{end}} >/dev/ttyS2
 
 # Install Python dependencies.
-retry wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py >/dev/null
+retry wget -O /tmp/get-pip.py {{.PipURL}} >/dev/null
 retry {{.PythonCommand}} /tmp/get-pip.py >/dev/null
 retry {{.PythonCommand}} -m pip install --upgrade pyasn1 >/dev/null
 
@@ -169,6 +169,8 @@ type testCase struct {
 	pythonCommand string
 	// The python-dev package to install, e.g "python-dev" or "python3.5-dev".
 	pythonDev string
+	// URL to use to bootstrap the pip installation. See b/178278868 for details.
+	pipURL string
 	// Used in the bench code to check the Python version, e.g
 	// "sys.version_info[:2] == (2.7)".
 	versionCheck string
@@ -192,6 +194,7 @@ func (tc *testCase) initializeStartUpScript(template *template.Template) error {
 		InstallPythonVersion string
 		PythonCommand        string
 		PythonDev            string
+		PipURL               string
 		VersionCheck         string
 		FinishString         string
 		ErrorString          string
@@ -203,6 +206,7 @@ func (tc *testCase) initializeStartUpScript(template *template.Template) error {
 		InstallPythonVersion: tc.installPythonVersion,
 		PythonCommand:        tc.pythonCommand,
 		PythonDev:            tc.pythonDev,
+		PipURL:               tc.pipURL,
 		VersionCheck:         tc.versionCheck,
 		FinishString:         benchFinishString,
 		ErrorString:          errorString,
@@ -281,6 +285,7 @@ func TestAgentIntegration(t *testing.T) {
 			},
 			pythonCommand: "python3",
 			pythonDev:     "python3-dev",
+			pipURL:        "https://bootstrap.pypa.io/get-pip.py",
 			versionCheck:  "sys.version_info[:2] >= (3, 6)",
 			timeout:       gceTestTimeout,
 			benchDuration: gceBenchDuration,
@@ -305,6 +310,7 @@ func TestAgentIntegration(t *testing.T) {
 			installPythonVersion: "python3.5",
 			pythonCommand:        "python3.5",
 			pythonDev:            "python3.5-dev",
+			pipURL:               "https://bootstrap.pypa.io/2.7/get-pip.py",
 			versionCheck:         "sys.version_info[:2] == (3, 5)",
 			timeout:              gceTestTimeout,
 			benchDuration:        gceBenchDuration,
@@ -335,6 +341,7 @@ func TestAgentIntegration(t *testing.T) {
 				},
 				pythonCommand: "python3",
 				pythonDev:     "python3-dev",
+				pipURL:        "https://bootstrap.pypa.io/get-pip.py",
 				versionCheck:  "sys.version_info[:2] >= (3, 6)",
 				timeout:       backoffTestTimeout,
 				benchDuration: backoffBenchDuration,
