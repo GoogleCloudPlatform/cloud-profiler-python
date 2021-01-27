@@ -22,6 +22,7 @@ import re
 import sys
 import threading
 import time
+import traceback
 
 import google_auth_httplib2
 import googleapiclient
@@ -305,8 +306,10 @@ class Client(object):
       logger.debug('Starting to upload profile')
       self._profiler_service.patch(
           name=profile['name'], body=profile).execute(num_retries=3)
-    except BaseException as e:
-      logger.error('Failed to collect and upload profile: %s', str(e))
+    except BaseException:  # pylint: disable=broad-except
+      logger.error(
+          'Failed to collect and upload profile whose profile type is %s: %s',
+          profile_type, traceback.format_exc())
 
   def _poll_profiler_service(self):
     """Polls the profiler server stoplessly."""
