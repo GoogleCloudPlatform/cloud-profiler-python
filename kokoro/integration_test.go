@@ -310,7 +310,7 @@ func TestAgentIntegration(t *testing.T) {
 			installPythonVersion: "python3.5",
 			pythonCommand:        "python3.5",
 			pythonDev:            "python3.5-dev",
-			pipURL:               "https://bootstrap.pypa.io/2.7/get-pip.py",
+			pipURL:               "https://bootstrap.pypa.io/pip/2.7/get-pip.py",
 			versionCheck:         "sys.version_info[:2] == (3, 5)",
 			timeout:              gceTestTimeout,
 			benchDuration:        gceBenchDuration,
