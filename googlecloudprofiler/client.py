@@ -19,28 +19,22 @@ import json
 import logging
 import os
 import re
-import sys
 import threading
 import time
 import traceback
 
+import google.auth
+from google.oauth2 import service_account
 import google_auth_httplib2
 import googleapiclient
 import googleapiclient.discovery
 import googleapiclient.errors
 from googlecloudprofiler import __version__ as version
 from googlecloudprofiler import backoff
-# pylint: disable=g-import-not-at-top
-if sys.version_info >= (3, 2) and sys.platform.startswith('linux'):
-  from googlecloudprofiler import cpu_profiler
-else:
-  # CPU profiling is not supported for Python older than 3.2.
-  cpu_profiler = None
+from googlecloudprofiler import cpu_profiler
 from googlecloudprofiler import pythonprofiler
 import httplib2
 import requests
-import google.auth
-from google.oauth2 import service_account
 from google.protobuf import duration_pb2
 from google.protobuf import json_format
 
@@ -229,29 +223,14 @@ class Client(object):
 
   def _config_cpu_profiling(self, disable_cpu_profiling, period_ms):
     """Adds CPU profiler if CPU profiling is supported and not disabled."""
-    cpu_profiling_supported = cpu_profiler is not None
-    if not cpu_profiling_supported:
-      logger.info('CPU profiling is not supported on the current Python '
-                  'version or Operating System. Python versions 3.2 and higher '
-                  'on Linux are supported.')
-    elif disable_cpu_profiling:
+    if disable_cpu_profiling:
       logger.info('CPU profiling is disabled by disable_cpu_profiling')
     else:
       self._profilers['CPU'] = cpu_profiler.CPUProfiler(period_ms)
 
   def _config_wall_profiling(self, disable_wall_profiling, period_ms):
     """Adds wall profiler if wall profiling is supported and not disabled."""
-    # The Python signal module in Python versions older than 3.6 doesn't handle
-    # signals properly. See b/123783496. The signal module changed significantly
-    # in Python 3.6 and the problem no longer exists. For Python 2, the problem
-    # theoretically can happen, but is much less likely to manifest. Users can
-    # use it at their own risk.
-    wall_profiling_supported = (
-        sys.version_info >= (3, 6) or sys.version_info < (3, 0))
-    if not wall_profiling_supported:
-      logger.info('Wall profiling is not supported on the current Python '
-                  'version. Python 2 and Python 3.6 and higher are supported')
-    elif disable_wall_profiling:
+    if disable_wall_profiling:
       logger.info('Wall profiling is disabled by disable_wall_profiling')
     else:
       self._profilers['WALL'] = pythonprofiler.WallProfiler(period_ms)

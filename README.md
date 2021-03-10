@@ -7,6 +7,10 @@ See
 [Google Cloud Profiler profiling Python code](https://cloud.google.com/profiler/docs/profiling-python)
 for detailed documentation.
 
+## Supported Python Versions
+
+Python >= 3.6
+
 ## Installation & usage
 
 1.  Install the profiler package using PyPI:
