@@ -79,3 +79,17 @@ COPY ./bench.py .
 CMD python3 -u bench.py
 ```
 
+
+## Troubleshooting
+
+### Resource temporarily unavailable errors with Python
+
+If you see the following log entries after enabling the Profiler:
+
+```
+BlockingIOError: [Errno 11] Resource temporarily unavailable
+Exception ignored when trying to write to the signal wakeup fd
+```
+
+see https://cloud.google.com/profiler/docs/troubleshooting#python-blocking for
+the cause and the workaround.
