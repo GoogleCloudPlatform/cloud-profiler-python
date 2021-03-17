@@ -69,6 +69,15 @@ retry add-apt-repository -y ppa:deadsnakes/ppa >/dev/null
 # TODO : Validate this solves the issue. Remove if not.
 retry apt-get -o Acquire::ForceIPv4=true update >/dev/null
 retry apt-get -o Acquire::ForceIPv4=true install -yq git build-essential python3-distutils {{.PythonDev}} {{if .InstallPythonVersion}}{{.InstallPythonVersion}}{{end}} >/dev/ttyS2
+# Print current Python version.
+{{.PythonCommand}} --version
+# Distutils need to be installed separately for Python 3.9 and 3.10
+{{if eq .PythonCommand "python3.9"}}
+retry apt-get -yq install python3.9-distutils
+{{end}}
+{{if eq .PythonCommand "python3.10"}}
+retry apt-get -yq install python3.10-distutils
+{{end}}
 
 # Install Python dependencies.
 retry wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py >/dev/null
@@ -262,61 +271,7 @@ func TestAgentIntegration(t *testing.T) {
 		ComputeService: computeService,
 	}
 
-	testcases := []testCase{
-		// Test GCE Ubuntu default Python 3, should be Python 3.6 or higher.
-		{
-			InstanceConfig: proftest.InstanceConfig{
-				ProjectID:    projectID,
-				Zone:         zone,
-				Name:         fmt.Sprintf("profiler-test-python3-%s", runID),
-				MachineType:  "n1-standard-1",
-				ImageProject: "ubuntu-os-cloud",
-				ImageFamily:  "ubuntu-1804-lts",
-				Scopes:       []string{storageReadScope},
-			},
-			name: fmt.Sprintf("profiler-test-python3-%s-gce", runID),
-			wantProfiles: map[string]string{
-				"WALL": "repeat_bench",
-				"CPU":  "repeat_bench",
-			},
-			pythonCommand: "python3",
-			pythonDev:     "python3-dev",
-			versionCheck:  "sys.version_info[:2] >= (3, 6)",
-			timeout:       gceTestTimeout,
-			benchDuration: gceBenchDuration,
-		},
-	}
-
-	if *runBackoffTest {
-		testcases = append(testcases,
-			testCase{
-				// Test GCE Ubuntu default Python 3, should be Python 3.6 or higher.
-				InstanceConfig: proftest.InstanceConfig{
-					ProjectID:    projectID,
-					Zone:         zone,
-					Name:         fmt.Sprintf("profiler-test-python3-backoff-%s", runID),
-					ImageProject: "ubuntu-os-cloud",
-					ImageFamily:  "ubuntu-1804-lts",
-					Scopes:       []string{storageReadScope},
-
-					// Running many copies of the benchmark requires more
-					// memory than is available on an n1-standard-1. Use a
-					// machine type with more memory for backoff test.
-					MachineType: "n1-highmem-2",
-				},
-				name: fmt.Sprintf("profiler-test-python3-backoff-%s-gce", runID),
-				wantProfiles: map[string]string{
-					"WALL": "repeat_bench",
-					"CPU":  "repeat_bench",
-				},
-				pythonCommand: "python3",
-				pythonDev:     "python3-dev",
-				versionCheck:  "sys.version_info[:2] >= (3, 6)",
-				timeout:       backoffTestTimeout,
-				benchDuration: backoffBenchDuration,
-				backoffTest:   true,
-			})
-	}
+	testcases := generateTestCases(projectID, zone)
 
 	// Allow test cases to run in parallel.
 	runtime.GOMAXPROCS(len(testcases))
@@ -373,4 +328,88 @@ func TestAgentIntegration(t *testing.T) {
 			}
 		})
 	}
+}
+
+func generateTestCases(projectID, zone string) []testCase {
+	tcs := []testCase{
+		// Test GCE Ubuntu default Python 3, should be Python 3.6 or higher.
+		{
+			InstanceConfig: proftest.InstanceConfig{
+				ProjectID:    projectID,
+				Zone:         zone,
+				Name:         fmt.Sprintf("profiler-test-python3-%s", runID),
+				MachineType:  "n1-standard-1",
+				ImageProject: "ubuntu-os-cloud",
+				ImageFamily:  "ubuntu-1804-lts",
+				Scopes:       []string{storageReadScope},
+			},
+			name: fmt.Sprintf("profiler-test-python3-%s-gce", runID),
+			wantProfiles: map[string]string{
+				"WALL": "repeat_bench",
+				"CPU":  "repeat_bench",
+			},
+			pythonCommand: "python3",
+			pythonDev:     "python3-dev",
+			versionCheck:  "sys.version_info[:2] >= (3, 6)",
+			timeout:       gceTestTimeout,
+			benchDuration: gceBenchDuration,
+		},
+	}
+
+	for _, v := range []string{"6", "7", "8", "9", "10"} {
+		tcs = append(tcs, testCase{
+			InstanceConfig: proftest.InstanceConfig{
+				ProjectID:    projectID,
+				Zone:         zone,
+				Name:         fmt.Sprintf("profiler-test-python3%s-%s", v, runID),
+				MachineType:  "n1-standard-1",
+				ImageProject: "ubuntu-os-cloud",
+				ImageFamily:  "ubuntu-1804-lts",
+				Scopes:       []string{storageReadScope},
+			},
+			name: fmt.Sprintf("profiler-test-python3%s-%s-gce", v, runID),
+			wantProfiles: map[string]string{
+				"WALL": "repeat_bench",
+				"CPU":  "repeat_bench",
+			},
+			installPythonVersion: fmt.Sprintf("python3.%s", v),
+			pythonCommand:        fmt.Sprintf("python3.%s", v),
+			pythonDev:            fmt.Sprintf("python3.%s-dev", v),
+			versionCheck:         fmt.Sprintf("sys.version_info[:2] >= (3, %s)", v),
+			timeout:              gceTestTimeout,
+			benchDuration:        gceBenchDuration,
+		})
+	}
+
+	if *runBackoffTest {
+		tcs = append(tcs, testCase{
+			// Test GCE Ubuntu default Python 3, should be Python 3.6 or higher.
+			InstanceConfig: proftest.InstanceConfig{
+				ProjectID:    projectID,
+				Zone:         zone,
+				Name:         fmt.Sprintf("profiler-test-python3-backoff-%s", runID),
+				ImageProject: "ubuntu-os-cloud",
+				ImageFamily:  "ubuntu-1804-lts",
+				Scopes:       []string{storageReadScope},
+
+				// Running many copies of the benchmark requires more
+				// memory than is available on an n1-standard-1. Use a
+				// machine type with more memory for backoff test.
+				MachineType: "n1-highmem-2",
+			},
+			name: fmt.Sprintf("profiler-test-python3-backoff-%s-gce", runID),
+			wantProfiles: map[string]string{
+				"WALL": "repeat_bench",
+				"CPU":  "repeat_bench",
+			},
+			pythonCommand: "python3",
+			pythonDev:     "python3-dev",
+			versionCheck:  "sys.version_info[:2] >= (3, 6)",
+			timeout:       backoffTestTimeout,
+			benchDuration: backoffBenchDuration,
+			backoffTest:   true,
+		})
+	}
+
+	return tcs
 }
