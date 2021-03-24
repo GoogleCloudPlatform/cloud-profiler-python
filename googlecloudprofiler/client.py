@@ -19,6 +19,7 @@ import json
 import logging
 import os
 import re
+import sys
 import threading
 import time
 import traceback
@@ -31,7 +32,12 @@ import googleapiclient.discovery
 import googleapiclient.errors
 from googlecloudprofiler import __version__ as version
 from googlecloudprofiler import backoff
-from googlecloudprofiler import cpu_profiler
+# pylint: disable=g-import-not-at-top
+if sys.platform.startswith('linux'):
+  from googlecloudprofiler import cpu_profiler
+else:
+  # CPU profiling is only supported on Linux.
+  cpu_profiler = None
 from googlecloudprofiler import pythonprofiler
 import httplib2
 import requests
@@ -223,7 +229,11 @@ class Client(object):
 
   def _config_cpu_profiling(self, disable_cpu_profiling, period_ms):
     """Adds CPU profiler if CPU profiling is supported and not disabled."""
-    if disable_cpu_profiling:
+    cpu_profiling_supported = cpu_profiler is not None
+    if not cpu_profiling_supported:
+      logger.info('CPU profiling is not supported on the current Operating '
+                  'System. Linux is the only supported Operating System.')
+    elif disable_cpu_profiling:
       logger.info('CPU profiling is disabled by disable_cpu_profiling')
     else:
       self._profilers['CPU'] = cpu_profiler.CPUProfiler(period_ms)

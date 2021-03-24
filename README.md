@@ -7,6 +7,13 @@ See
 [Google Cloud Profiler profiling Python code](https://cloud.google.com/profiler/docs/profiling-python)
 for detailed documentation.
 
+## Supported OS
+
+Linux. Profiling Python applications is supported for Linux kernels whose
+standard C library is implemented with `glibc` or with `musl`. For configuration
+information specific to Linux Alpine kernels, see
+[Running on Linux Alpine](https://cloud.google.com/profiler/docs/profiling-python#running_with_linux_alpine).
+
 ## Supported Python Versions
 
 Python >= 3.6
