@@ -24,10 +24,10 @@ from setuptools import setup
 install_requires = [
     # google-api-python-client V1.12.0 has an known issue,see
     # https://github.com/googleapis/google-api-python-client/issues/1029.
-    # TODO: Allow use of later versions of google-api-python-client
-    # once there is a new release which is compatible with this profiling agent
-    # test endpoints.
-    'google-api-python-client!=1.12.0,<2',
+    # V2.0.2 is also not compatiable with private API endpoints, see
+    # https://github.com/googleapis/google-api-python-client/issues/1225 and
+    # https://github.com/googleapis/google-api-python-client/pull/1261.
+    'google-api-python-client!=1.12.0,!=2.0.2',
     'google-auth>=1.0.0',
     'google-auth-httplib2',
     'protobuf',
