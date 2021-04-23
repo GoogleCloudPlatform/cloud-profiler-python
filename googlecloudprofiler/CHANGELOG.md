@@ -1,3 +1,11 @@
+### 3.0.4
+
+### Dependencies
+* chore: requires google-api-python-client != 2.0.2 to avoid private API incompatibility issue ([5738fe8](https://github.com/GoogleCloudPlatform/cloud-profiler-python/5738fe8e2a68dee548c0b4ba9465bfa48d019706))
+
+### Documentation
+* doc: add CHANGELOG.md file ([dabfdd6](https://github.com/GoogleCloudPlatform/cloud-profiler-python/dabfdd6cdd8c3a181c4d8dec607a7e907e4fac7e))
+
 ### 3.0.3
 
 ### Bug Fixes
