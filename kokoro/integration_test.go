@@ -356,9 +356,7 @@ func generateTestCases(projectID, zone string) []testCase {
 		},
 	}
 
-	// TODO: Add testing for 3.10 back once the pip issue is
-	// resolved.
-	for _, v := range []string{"6", "7", "8", "9"} {
+	for _, v := range []string{"6", "7", "8", "9", "10"} {
 		tcs = append(tcs, testCase{
 			InstanceConfig: proftest.InstanceConfig{
 				ProjectID:    projectID,
