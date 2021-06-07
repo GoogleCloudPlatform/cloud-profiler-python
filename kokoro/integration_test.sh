@@ -28,6 +28,9 @@ set -eo pipefail
 # Display commands being run.
 set -x
 
+# Dump environment variables on error.
+trap 'printenv' ERR
+
 cd $(dirname $0)/..
 
 export GCLOUD_TESTS_PYTHON_PROJECT_ID="cloud-profiler-e2e"
