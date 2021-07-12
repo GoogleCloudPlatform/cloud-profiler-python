@@ -1,3 +1,17 @@
+### 3.0.5
+
+### Documentation
+
+* doc: update the changelog for release of 3.0.4 ([57b45cf](https://github.com/GoogleCloudPlatform/cloud-profiler-python/57b45cf2a72333063bc64c3dc636098e0571e8cf))
+
+### Internal / Testing Changes
+
+* test: display environment variables when encountering an error ([ad2ce5b](https://github.com/GoogleCloudPlatform/cloud-profiler-python/ad2ce5bad286fd7f1dddee741babb5a374339518))
+
+* test: temporarily disable testing for Python 3.10 until https://github.com/pypa/pip/issues/9951 is resolved ([4197241](https://github.com/GoogleCloudPlatform/cloud-profiler-python/41972412bb45e484552bac803bf1319222224415))
+
+* chore: make CHANGELOG.md a top-level file ([058e646](https://github.com/GoogleCloudPlatform/cloud-profiler-python/058e6467a217f48b2155b2f31336fcd4e7fb4030))
+
 ### 3.0.4
 
 ### Dependencies
