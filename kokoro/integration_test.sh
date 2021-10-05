@@ -28,6 +28,13 @@ set -eo pipefail
 # Display commands being run.
 set -x
 
+# Remove expired certificate; otherwise `go get` may fail.
+# See https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/
+# for more context.
+sudo apt-get install -y ca-certificates
+sudo rm -f /usr/share/ca-certificates/mozilla/DST_Root_CA_X3.crt
+sudo update-ca-certificates
+
 cd $(dirname $0)/..
 
 export GCLOUD_TESTS_PYTHON_PROJECT_ID="cloud-profiler-e2e"
