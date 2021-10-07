@@ -296,7 +296,7 @@ class Client(object):
       self._profiler_service.patch(
           name=profile['name'], body=profile).execute(num_retries=3)
     except BaseException:  # pylint: disable=broad-except
-      logger.error(
+      logger.warning(
           'Failed to collect and upload profile whose profile type is %s: %s',
           profile_type, traceback.format_exc())
 

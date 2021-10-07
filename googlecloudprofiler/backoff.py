@@ -68,8 +68,8 @@ class Backoff(object):
       # more details.
       if isinstance(error, OSError) and error.errno == errno.EPIPE:
         broken_pipe_sec = random.uniform(1, 10)
-        logger.error('Agent will back off for %.3f seconds due to %s',
-                     broken_pipe_sec, str(error))
+        logger.warning('Agent will back off for %.3f seconds due to %s',
+                       broken_pipe_sec, str(error))
         return broken_pipe_sec
       elif isinstance(error, googleapiclient.errors.HttpError):
         content = json.loads(error.content.decode('utf-8'))
@@ -80,7 +80,7 @@ class Backoff(object):
             return delay.seconds + float(delay.nanos) / _NANOS_PER_SEC
     # It's safe to catch BaseException because this runs in a daemon thread.
     except BaseException as e:  # pylint: disable=broad-except
-      logger.error(
+      logger.warning(
           'Failed to extract server-specified backoff duration '
           '(will use exponential backoff): %s', str(e))
 
