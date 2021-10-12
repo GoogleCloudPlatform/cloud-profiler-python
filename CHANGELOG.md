@@ -1,3 +1,13 @@
+### 3.0.6
+
+### Bug Fixes
+
+* fix: workaround certificate expiration issue in integration tests ([80f423f](https://github.com/GoogleCloudPlatform/cloud-profiler-python/80f423f439cbc780d2da8930abc0b99308378abb))
+
+### Internal / Testing Changes
+
+* chore: log most errors at warning level. ([8147311](https://github.com/GoogleCloudPlatform/cloud-profiler-python/814731125216fd1c332c9d90074635485e8ac62f))
+
 ### 3.0.5
 
 ### Documentation
