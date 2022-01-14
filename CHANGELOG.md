@@ -1,3 +1,9 @@
+### 3.0.7
+
+### Bug Fixes
+
+* fix: rollback workaround for certification issue ([ca588f5](https://github.com/GoogleCloudPlatform/cloud-profiler-python/ca588f58081258b1259a2564f2a1614c6c949495))
+
 ### 3.0.6
 
 ### Bug Fixes
