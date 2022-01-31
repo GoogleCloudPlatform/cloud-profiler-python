@@ -81,8 +81,8 @@ retry apt-get -yq install python3.10-distutils
 
 # Install Python dependencies.
 retry wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py >/dev/null
-retry {{.PythonCommand}} /tmp/get-pip.py >/dev/null
-retry {{.PythonCommand}} -m pip install --upgrade pyasn1 >/dev/null
+retry {{.PythonCommand}} /tmp/get-pip.py
+retry {{.PythonCommand}} -m pip install --upgrade pyasn1
 
 # Setup pipenv
 retry {{.PythonCommand}} -m pip install pipenv > /dev/null
