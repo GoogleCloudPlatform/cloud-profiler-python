@@ -16,6 +16,7 @@
 from __future__ import print_function
 
 import glob
+import os
 import re
 import sys
 from setuptools import Extension
@@ -34,6 +35,19 @@ install_requires = [
     'requests',
 ]
 
+_static_linking_args = [
+    '-static-libstdc++',
+    # While libgcc_s.so.1 is pretty much always installed by default
+    # for non-Alpine linux, it is not installed by default in Alpine.
+    # So, to support Alpine, we will always statically link "libgcc"
+    # package. We could alternatively require users to install the
+    # "libgcc" package, but the static linkage seems less
+    # invasive.
+    '-static-libgcc'
+]
+if os.environ.get('DISABLE_STATIC_LINKING', 0):
+    _static_linking_args = []
+
 ext_module = [
     Extension(
         'googlecloudprofiler._profiler',
@@ -41,17 +55,8 @@ ext_module = [
         include_dirs=['googlecloudprofiler/src'],
         language='c++',
         extra_compile_args=['-std=c++11'],
-        extra_link_args=[
-            '-std=c++11',
-            '-static-libstdc++',
-            # While libgcc_s.so.1 is pretty much always installed by default
-            # for non-Alpine linux, it is not installed by default in Alpine.
-            # So, to support Alpine, we will always statically link "libgcc"
-            # package. We could alternatively require users to install the
-            # "libgcc" package, but the static linkage seems less
-            # invasive.
-            '-static-libgcc'
-        ])
+        extra_link_args=['-std=c++11'] + _static_linking_args,
+    )
 ]
 
 if not (sys.platform.startswith('linux') or sys.platform.startswith('darwin')):
