@@ -45,7 +45,7 @@ def start(service=None,
       project. The string should be the same across different replicas of your
       service so that the globally constant profiling rate is maintained. Do not
       put things like PID or unique pod ID in the name. The string must match
-      the regular expression '^[a-z]([-a-z0-9_.]{0,253}[a-z0-9])?$'. When not
+      the regular expression '^[a-z0-9]([-a-z0-9_.]{0,253}[a-z0-9])?$'. When not
       specified, the value of GAE_SERVICE environment variable will be used,
       which is set for applications running on Google App Engine; if GAE_SERVICE
       is not set,the value of K_VERSION environment variable, which is set on
@@ -92,7 +92,7 @@ def start(service=None,
   Raises:
     ValueError: If arguments are invalid or if necessary information can't be
       determined from the environment and arguments. Or if service name doesn't
-      match '^[a-z]([-a-z0-9_.]{0,253}[a-z0-9])?$'. Or if called from
+      match '^[a-z0-9]([-a-z0-9_.]{0,253}[a-z0-9])?$'. Or if called from
       a non-main thread when Wall time profiling is enabled. Or if no profiling
       mode is enabled.
     NotImplementedError: If not run on Linux or Mac.

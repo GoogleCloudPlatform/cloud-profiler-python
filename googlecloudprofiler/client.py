@@ -158,7 +158,7 @@ class Client(object):
     Raises:
       ValueError: If the project ID or service can't be determined from the
         environment and arguments. Or if service name doesn't match
-        '^[a-z]([-a-z0-9_.]{0,253}[a-z0-9])?$'. Or if no profiling mode is
+        '^[a-z0-9]([-a-z0-9_.]{0,253}[a-z0-9])?$'. Or if no profiling mode is
         enabled.
     """
     self._profilers = {}
@@ -178,7 +178,7 @@ class Client(object):
     if not service:
       raise ValueError('Service name must be provided via configuration or '
                        'GAE_SERVICE environment variable.')
-    service_re = re.compile('^[a-z]([-a-z0-9_.]{0,253}[a-z0-9])?$')
+    service_re = re.compile('^[a-z0-9]([-a-z0-9_.]{0,253}[a-z0-9])?$')
     if not service_re.match(service):
       raise ValueError('Service name "%s" does not match regular expression '
                        '"%s"' % (service, service_re.pattern))
