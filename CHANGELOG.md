@@ -1,3 +1,10 @@
+## 3.1.0
+
+### Features
+
+*   fix: relax service name regexp to allow service name to start with number
+    ([179adcb](https://github.com/GoogleCloudPlatform/cloud-profiler-python/179adcb407bf84a74a935b753e02aedf7b007138))
+
 ### 3.0.8
 
 ### Internal / Testing Changes
