@@ -30,7 +30,7 @@ install_requires = [
     'google-api-python-client!=1.12.0,!=2.0.2',
     'google-auth>=1.0.0',
     'google-auth-httplib2',
-    'protobuf',
+    'protobuf<4.0.0dev',
     'requests',
 ]
 
