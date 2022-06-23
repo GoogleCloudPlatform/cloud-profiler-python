@@ -1,3 +1,10 @@
+## 4.0.0
+
+### ⚠ BREAKING CHANGES
+
+*   fix(deps)!: make agent compatible with protobuf v21.1
+    ([8d2ad1e](https://github.com/GoogleCloudPlatform/cloud-profiler-python/8d2ad1ee0cfe5b15d346040442c28433c1786e28))
+
 ## 3.1.0
 
 ### Features
