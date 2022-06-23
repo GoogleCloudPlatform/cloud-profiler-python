@@ -71,16 +71,14 @@ retry apt-get -o Acquire::ForceIPv4=true update >/dev/null
 retry apt-get -o Acquire::ForceIPv4=true install -yq git build-essential python3-distutils {{.PythonDev}} {{if .InstallPythonVersion}}{{.InstallPythonVersion}}{{end}} >/dev/ttyS2
 # Print current Python version.
 {{.PythonCommand}} --version
-# Distutils need to be installed separately for Python 3.9 and 3.10
-{{if eq .PythonCommand "python3.9"}}
-retry apt-get -yq install python3.9-distutils
-{{end}}
-{{if eq .PythonCommand "python3.10"}}
-retry apt-get -yq install python3.10-distutils
+# Distutils need to be installed separately when explicitly testing various
+# Python versions.
+{{if .InstallPythonVersion}}
+retry apt-get -yq install {{.InstallPythonVersion}}-distutils
 {{end}}
 
 # Install Python dependencies.
-retry wget -O /tmp/get-pip.py {{if .GetPipURL}}{{.GetPipURL}}{{else}}https://bootstrap.pypa.io/get-pip.py{{end}} >/dev/null
+retry wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py >/dev/null
 retry {{.PythonCommand}} /tmp/get-pip.py >/dev/null
 retry {{.PythonCommand}} -m pip install --upgrade pyasn1 >/dev/null
 
@@ -337,7 +335,7 @@ func TestAgentIntegration(t *testing.T) {
 
 func generateTestCases(projectID, zone string) []testCase {
 	tcs := []testCase{
-		// Test GCE Ubuntu default Python 3, expect Python 3.6.
+		// Test GCE Ubuntu default Python 3, expect Python 3.10.
 		{
 			InstanceConfig: proftest.InstanceConfig{
 				ProjectID:    projectID,
@@ -345,7 +343,7 @@ func generateTestCases(projectID, zone string) []testCase {
 				Name:         fmt.Sprintf("profiler-test-python3-%s", runID),
 				MachineType:  "n1-standard-1",
 				ImageProject: "ubuntu-os-cloud",
-				ImageFamily:  "ubuntu-1804-lts",
+				ImageFamily:  "ubuntu-2204-lts",
 				Scopes:       []string{storageReadScope},
 			},
 			name: fmt.Sprintf("profiler-test-python3-%s-gce", runID),
@@ -355,44 +353,32 @@ func generateTestCases(projectID, zone string) []testCase {
 			},
 			pythonCommand: "python3",
 			pythonDev:     "python3-dev",
-			versionCheck:  "sys.version_info[:2] == (3, 6)",
-			getPipURL:     "https://bootstrap.pypa.io/pip/3.6/get-pip.py",
+			versionCheck:  "sys.version_info[:2] == (3, 10)",
 			timeout:       gceTestTimeout,
 			benchDuration: gceBenchDuration,
 		},
 	}
 
-	// TODO: Add testing for 3.10 back once the pip issue is
-	// resolved.
-	for _, tc := range []struct {
-		minorVersion string
-		getPipURL    string
-	}{
-		{minorVersion: "6", getPipURL: "https://bootstrap.pypa.io/pip/3.6/get-pip.py"},
-		{minorVersion: "7"},
-		{minorVersion: "8"},
-		{minorVersion: "9"},
-	} {
+	for _, minorVersion := range []int{7, 8, 9, 10} {
 		tcs = append(tcs, testCase{
 			InstanceConfig: proftest.InstanceConfig{
 				ProjectID:    projectID,
 				Zone:         zone,
-				Name:         fmt.Sprintf("profiler-test-python3%s-%s", tc.minorVersion, runID),
+				Name:         fmt.Sprintf("profiler-test-python3%d-%s", minorVersion, runID),
 				MachineType:  "n1-standard-1",
 				ImageProject: "ubuntu-os-cloud",
-				ImageFamily:  "ubuntu-1804-lts",
+				ImageFamily:  "ubuntu-2204-lts",
 				Scopes:       []string{storageReadScope},
 			},
-			name: fmt.Sprintf("profiler-test-python3%s-%s-gce", tc.minorVersion, runID),
+			name: fmt.Sprintf("profiler-test-python3%d-%s-gce", minorVersion, runID),
 			wantProfiles: map[string]string{
 				"WALL": "repeat_bench",
 				"CPU":  "repeat_bench",
 			},
-			installPythonVersion: fmt.Sprintf("python3.%s", tc.minorVersion),
-			pythonCommand:        fmt.Sprintf("python3.%s", tc.minorVersion),
-			pythonDev:            fmt.Sprintf("python3.%s-dev", tc.minorVersion),
-			versionCheck:         fmt.Sprintf("sys.version_info[:2] >= (3, %s)", tc.minorVersion),
-			getPipURL:            tc.getPipURL,
+			installPythonVersion: fmt.Sprintf("python3.%d", minorVersion),
+			pythonCommand:        fmt.Sprintf("python3.%d", minorVersion),
+			pythonDev:            fmt.Sprintf("python3.%d-dev", minorVersion),
+			versionCheck:         fmt.Sprintf("sys.version_info[:2] >= (3, %d)", minorVersion),
 			timeout:              gceTestTimeout,
 			benchDuration:        gceBenchDuration,
 		})
@@ -400,13 +386,13 @@ func generateTestCases(projectID, zone string) []testCase {
 
 	if *runBackoffTest {
 		tcs = append(tcs, testCase{
-			// Test GCE Ubuntu default Python 3, expect Python 3.6.
+			// Test GCE Ubuntu default Python 3, expect Python 3.10.
 			InstanceConfig: proftest.InstanceConfig{
 				ProjectID:    projectID,
 				Zone:         zone,
 				Name:         fmt.Sprintf("profiler-test-python3-backoff-%s", runID),
 				ImageProject: "ubuntu-os-cloud",
-				ImageFamily:  "ubuntu-1804-lts",
+				ImageFamily:  "ubuntu-2204-lts",
 				Scopes:       []string{storageReadScope},
 
 				// Running many copies of the benchmark requires more
@@ -421,8 +407,7 @@ func generateTestCases(projectID, zone string) []testCase {
 			},
 			pythonCommand: "python3",
 			pythonDev:     "python3-dev",
-			versionCheck:  "sys.version_info[:2] == (3, 6)",
-			getPipURL:     "https://bootstrap.pypa.io/pip/3.6/get-pip.py",
+			versionCheck:  "sys.version_info[:2] == (3, 10)",
 			timeout:       backoffTestTimeout,
 			benchDuration: backoffBenchDuration,
 			backoffTest:   true,
