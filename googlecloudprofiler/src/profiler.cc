@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <memory>
 
 #include "clock.h"
 #include "log.h"
@@ -42,7 +43,14 @@ struct PyObjectDecReffer {
   }
 };
 
+struct PyFrameObjectDecReffer {
+  void operator()(PyFrameObject *py_frame_object) const {
+    Py_XDECREF(py_frame_object);
+  }
+};
+
 typedef std::unique_ptr<PyObject, PyObjectDecReffer> PyObjectRef;
+typedef std::unique_ptr<PyFrameObject, PyFrameObjectDecReffer> PyFrameObjectRef;
 
 // Helper class to store and reset errno when in a signal handler.
 class ErrnoRaii {
@@ -57,6 +65,23 @@ class ErrnoRaii {
  private:
   int stored_errno_;
 };
+
+// Code defining a few frame related methods on Python 3.8 and older, copied
+// from https://docs.python.org/3/whatsnew/3.11.html#pyframeobject-3-11-hiding
+#if PY_VERSION_HEX < 0x030900B1
+static inline PyFrameObject *PyThreadState_GetFrame(PyThreadState *tstate) {
+  Py_XINCREF(tstate->frame);
+  return tstate->frame;
+}
+static inline PyCodeObject *PyFrame_GetCode(PyFrameObject *frame) {
+  Py_INCREF(frame->f_code);
+  return frame->f_code;
+}
+static inline PyFrameObject *PyFrame_GetBack(PyFrameObject *frame) {
+  Py_XINCREF(frame->f_back);
+  return frame->f_back;
+}
+#endif
 
 }  // namespace
 
@@ -157,13 +182,22 @@ void Profiler::Handle(int signum, siginfo_t *info, void *context) {
   } else {
     // We are running in the context of the thread interrupted by the signal
     // so the frame object for the current thread is stable.
-    PyFrameObject *frame = ts->frame;
+    PyFrameObjectRef frame(PyThreadState_GetFrame(ts));
+
     int num_frames = 0;
     while (frame != nullptr && num_frames < kMaxFramesToCapture) {
-      frames[num_frames].lineno = frame->f_lineno;
-      frames[num_frames].py_code = frame->f_code;
+      frames[num_frames].lineno = PyFrame_GetLineNumber(frame.get());
+
+      // Profiler treats CallFrame.py_code as a weak pointer, with
+      // CodeDeallocHook tracking which code objects have been deallocated.
+      // Immediately DECREF the PyCodeObject to make it a weak pointer which may
+      // be safely GC'ed at any time.
+      PyCodeObject *code = PyFrame_GetCode(frame.get());
+      Py_DECREF(code);
+      frames[num_frames].py_code = code;
+
       num_frames++;
-      frame = frame->f_back;
+      frame.reset(PyFrame_GetBack(frame.get()));
     }
     trace.num_frames = num_frames;
   }

@@ -70,7 +70,7 @@ go mod init e2e
 # Compile test before running to download dependencies.
 retry go get cloud.google.com/go/profiler/proftest@HEAD
 retry go test -c
-./e2e.test  -gcs_location="${GCS_LOCATION}" -run_backoff_test=$RUN_BACKOFF_TEST
+./e2e.test -test.v  -gcs_location="${GCS_LOCATION}" -run_backoff_test=$RUN_BACKOFF_TEST
 
 # Exit with success code if no need to release the agent.
 if [[ "$KOKORO_JOB_TYPE" != "RELEASE" ]]; then
