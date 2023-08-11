@@ -359,7 +359,7 @@ func generateTestCases(projectID, zone string) []testCase {
 		},
 	}
 
-	for _, minorVersion := range []int{7, 8, 9, 10} {
+	for _, minorVersion := range []int{7, 8, 9, 10, 11} {
 		tcs = append(tcs, testCase{
 			InstanceConfig: proftest.InstanceConfig{
 				ProjectID:    projectID,

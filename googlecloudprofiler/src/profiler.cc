@@ -25,6 +25,7 @@
 
 #include "clock.h"
 #include "log.h"
+#include "populate_frames.h"
 
 AsyncSafeTraceMultiset *Profiler::fixed_traces_ = nullptr;
 std::atomic<int> Profiler::unknown_stack_count_;
@@ -150,24 +151,7 @@ void Profiler::Handle(int signum, siginfo_t *info, void *context) {
   // there are ways to avoid the problems.
   PyThreadState *ts = get_thread_state_func();
 
-  if (ts == nullptr) {
-    frames[0].lineno = kNoPyState;
-    frames[0].py_code = nullptr;
-    trace.num_frames = 1;
-  } else {
-    // We are running in the context of the thread interrupted by the signal
-    // so the frame object for the current thread is stable.
-    PyFrameObject *frame = ts->frame;
-    int num_frames = 0;
-    while (frame != nullptr && num_frames < kMaxFramesToCapture) {
-      frames[num_frames].lineno = frame->f_lineno;
-      frames[num_frames].py_code = frame->f_code;
-      num_frames++;
-      frame = frame->f_back;
-    }
-    trace.num_frames = num_frames;
-  }
-
+  trace.num_frames = PopulateFrames(frames, ts);
   if (!fixed_traces_->Add(&trace)) {
     unknown_stack_count_++;
     return;
