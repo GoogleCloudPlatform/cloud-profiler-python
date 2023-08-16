@@ -159,15 +159,10 @@ void Profiler::Handle(int signum, siginfo_t *info, void *context) {
 }
 
 void GetFuncLoc(PyCodeObject *code_object, FuncLoc *func_loc) {
-#if PY_MAJOR_VERSION < 3
-  const char *name = PyString_AS_STRING(code_object->co_name);
-  const char *filename = PyString_AS_STRING(code_object->co_filename);
-#else
   // Note that PyUnicode_AsUTF8 caches the char array in the unicodeobject
   // and the memory is released when the unicodeobject is deallocated.
   const char *name = PyUnicode_AsUTF8(code_object->co_name);
   const char *filename = PyUnicode_AsUTF8(code_object->co_filename);
-#endif
   func_loc->name = name != nullptr ? name : "unknown";
   func_loc->filename = filename != nullptr ? filename : "unknown";
 }
@@ -188,10 +183,8 @@ void Profiler::Reset() {
 
 // Must be called when GIL is held.
 PyObject *Profiler::PythonTraces() {
-#if PY_MAJOR_VERSION >= 3
   // Asserts that GIL is held in debug mode.
   assert(PyGILState_Check());
-#endif
   if (unknown_stack_count_ > 0) {
     CallFrame fakeFrame = {kUnknown, nullptr};
     aggregated_traces_.Add(1, &fakeFrame, unknown_stack_count_);

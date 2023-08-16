@@ -22,7 +22,7 @@ Func = collections.namedtuple('Func', ['name', 'filename'])
 Loc = collections.namedtuple('Loc', ['func_id', 'line_number'])
 
 
-class Builder(object):
+class Builder:
   """Builds the profile proto from call stack traces."""
 
   def __init__(self):

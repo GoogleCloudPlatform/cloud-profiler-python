@@ -20,7 +20,7 @@ from googlecloudprofiler import builder
 logger = logging.getLogger(__name__)
 
 
-class CPUProfiler(object):
+class CPUProfiler:
   """CPU time profiler.
 
   The profiler collects CPU time usage data and builds the data as

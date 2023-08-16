@@ -92,7 +92,7 @@ def retrieve_gce_metadata(metadata_key):
   return None
 
 
-class Client(object):
+class Client:
   """Communicates with the profiler backend over HTTP."""
 
   def __init__(self):
@@ -341,7 +341,7 @@ class Client(object):
       """Filter to eliminate info-level logging when called from this module."""
 
       def __init__(self, filter_levels=None):
-        super(_ChildLogFilter, self).__init__()
+        super().__init__()
         self._filter_levels = filter_levels or set(logging.INFO)
         # Get name without extension to avoid .py vs .pyc issues
         self._my_filename = os.path.splitext(
@@ -386,4 +386,4 @@ class ProfilerHttpRequest(googleapiclient.http.HttpRequest):
         headers[h] = ''
       headers[h] += val
 
-    super(ProfilerHttpRequest, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)

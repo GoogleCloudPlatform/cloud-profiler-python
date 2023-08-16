@@ -29,7 +29,7 @@ _NANOS_PER_SEC = 1000 * 1000 * 1000
 logger = logging.getLogger(__name__)
 
 
-class WallProfiler(object):
+class WallProfiler:
   """Python2-compatible implementation for Wall time profiler.
 
   This Wall profiler avoids dependency on any native code by using

@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 _NANOS_PER_SEC = 1000 * 1000 * 1000
 
 
-class Backoff(object):
+class Backoff:
   """This class calculates the backoff duration for a failed request.
 
   A backoff duration specified by the server is used if it presents in the

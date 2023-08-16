@@ -13,7 +13,6 @@
 # limitations under the License.
 """Cloud Profiler Python agent packaging script."""
 
-from __future__ import print_function
 
 import glob
 import re

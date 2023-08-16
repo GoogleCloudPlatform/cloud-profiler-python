@@ -34,7 +34,6 @@ PyMethodDef ProfilerMethods[] = {
     {nullptr, nullptr, 0, nullptr} /* Sentinel */
 };
 
-#if PY_MAJOR_VERSION >= 3
 struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT, "_profiler",           /* name of module */
     "Google Cloud Profiler C++ extension module", /* module documentation */
@@ -42,10 +41,3 @@ struct PyModuleDef moduledef = {
 }  // namespace
 
 PyMODINIT_FUNC PyInit__profiler(void) { return PyModule_Create(&moduledef); }
-#else
-}  // namespace
-
-PyMODINIT_FUNC init_profiler(void) {
-  Py_InitModule("_profiler", ProfilerMethods);
-}
-#endif
