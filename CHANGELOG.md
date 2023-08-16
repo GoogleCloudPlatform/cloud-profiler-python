@@ -1,3 +1,22 @@
+## 4.1.0
+
+### Features
+
+*   feat: support Python 3.11 by using `_PyInternalFrame` directly
+    ([244e7ca](https://github.com/GoogleCloudPlatform/cloud-profiler-python/244e7ca370fc2261980626394f2d2f91ab180fd2))
+
+### Bug Fixes
+
+*   fix: update Go installation method
+    ([ae0c31b](https://github.com/GoogleCloudPlatform/cloud-profiler-python/ae0c31b7ed962c8158e8a24ba44be6442c7374f8))
+*   fix(deps): Add protobuf version lower bound
+    ([ea964fc](https://github.com/GoogleCloudPlatform/cloud-profiler-python/ea964fc72095ca60492e7e5e1e4a45b01a91eccc))
+
+### Internal / Testing Changes
+
+*   chore: add aaronabbott@ as a python agent author
+    ([ca0bc43](https://github.com/GoogleCloudPlatform/cloud-profiler-python/ca0bc431498cd56f75e6eb474b2f4cfb37dc4818))
+
 ## 4.0.0
 
 ### ⚠ BREAKING CHANGES
