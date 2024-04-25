@@ -39,7 +39,7 @@ export GOOGLE_APPLICATION_CREDENTIALS="${KOKORO_KEYSTORE_DIR}/72935_cloud-profil
 # Package the agent and upload to GCS.
 retry python3 -m pip install --user --upgrade setuptools wheel twine
 python3 setup.py sdist
-AGENT_PATH=$(find "$PWD/dist" -name "google-cloud-profiler*")
+AGENT_PATH=$(find "$PWD/dist" -name "google_cloud_profiler*")
 GCS_LOCATION="cprof-e2e-artifacts/python/kokoro/${KOKORO_JOB_TYPE}/${KOKORO_BUILD_NUMBER}"
 retry gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}"
 retry gsutil cp "${AGENT_PATH}" "gs://${GCS_LOCATION}/"
