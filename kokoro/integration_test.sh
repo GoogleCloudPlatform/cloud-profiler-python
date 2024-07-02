@@ -53,18 +53,17 @@ if [[ "$KOKORO_JOB_TYPE" == "PRESUBMIT_GITHUB" ]]; then
   RUN_BACKOFF_TEST="false"
 fi
 
+# Pull in newer version of Go than provided by Kokoro image
 go version
-
-# The current Go version in the VM is 1.18.4, however we explicitly set it to
-# pin the Go dependency to v1.18.4 for consistency.
-retry curl -LO https://go.dev/dl/go1.18.4.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.4.linux-amd64.tar.gz
+GO_VERSION="1.22.4"
+retry curl -LO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
+go version
 
 # Initializing go modules allows our dependencies to install versions of their
 # dependencies specified by their go.mod files. This reduces the likelihood of
 # dependencies breaking this test.
-go version
 go mod init e2e
 
 # Compile test before running to download dependencies.
