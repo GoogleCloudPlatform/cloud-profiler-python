@@ -43,6 +43,7 @@ var (
 const (
 	cloudScope       = "https://www.googleapis.com/auth/cloud-platform"
 	storageReadScope = "https://www.googleapis.com/auth/devstorage.read_only"
+	defaultGetPipURL = "https://bootstrap.pypa.io/get-pip.py"
 
 	gceBenchDuration = 600 * time.Second
 	gceTestTimeout   = 20 * time.Minute
@@ -78,7 +79,7 @@ retry apt-get -yq install {{.InstallPythonVersion}}-distutils
 {{end}}
 
 # Install Python dependencies.
-retry wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py >/dev/null
+retry wget -O /tmp/get-pip.py {{.GetPipURL}} >/dev/null
 retry {{.PythonCommand}} /tmp/get-pip.py >/dev/null
 retry {{.PythonCommand}} -m pip install --upgrade pyasn1 >/dev/null
 
@@ -354,12 +355,19 @@ func generateTestCases(projectID, zone string) []testCase {
 			pythonCommand: "python3",
 			pythonDev:     "python3-dev",
 			versionCheck:  "sys.version_info[:2] == (3, 10)",
+			getPipURL:     defaultGetPipURL,
 			timeout:       gceTestTimeout,
 			benchDuration: gceBenchDuration,
 		},
 	}
 
 	for _, minorVersion := range []int{7, 8, 9, 10, 11} {
+		getPipURL := defaultGetPipURL
+		// TODO: remove special case once 3.7 is dropped
+		if minorVersion == 7 {
+			getPipURL = "https://bootstrap.pypa.io/pip/3.7/get-pip.py"
+		}
+
 		tcs = append(tcs, testCase{
 			InstanceConfig: proftest.InstanceConfig{
 				ProjectID:    projectID,
@@ -377,6 +385,7 @@ func generateTestCases(projectID, zone string) []testCase {
 			},
 			installPythonVersion: fmt.Sprintf("python3.%d", minorVersion),
 			pythonCommand:        fmt.Sprintf("python3.%d", minorVersion),
+			getPipURL:            getPipURL,
 			pythonDev:            fmt.Sprintf("python3.%d-dev", minorVersion),
 			versionCheck:         fmt.Sprintf("sys.version_info[:2] >= (3, %d)", minorVersion),
 			timeout:              gceTestTimeout,
