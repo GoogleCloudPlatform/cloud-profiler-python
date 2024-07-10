@@ -416,6 +416,7 @@ func generateTestCases(projectID, zone string) []testCase {
 			},
 			pythonCommand: "python3",
 			pythonDev:     "python3-dev",
+			getPipURL:     defaultGetPipURL,
 			versionCheck:  "sys.version_info[:2] == (3, 10)",
 			timeout:       backoffTestTimeout,
 			benchDuration: backoffBenchDuration,
