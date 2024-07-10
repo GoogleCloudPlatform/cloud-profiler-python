@@ -67,7 +67,7 @@ go version
 go mod init e2e
 
 # Compile test before running to download dependencies.
-retry go get cloud.google.com/go/profiler/proftest@HEAD
+retry go get cloud.google.com/go/profiler/proftest@main
 retry go test -c
 ./e2e.test  -gcs_location="${GCS_LOCATION}" -run_backoff_test=$RUN_BACKOFF_TEST
 
