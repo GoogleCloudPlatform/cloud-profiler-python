@@ -42,7 +42,7 @@ python3 setup.py sdist
 AGENT_PATH=$(find "$PWD/dist" -name "google_cloud_profiler*")
 GCS_LOCATION="cprof-e2e-artifacts/python/kokoro/${KOKORO_JOB_TYPE}/${KOKORO_BUILD_NUMBER}"
 retry gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}"
-retry gsutil cp "${AGENT_PATH}" "gs://${GCS_LOCATION}/"
+retry gcloud storage cp "${AGENT_PATH}" "gs://${GCS_LOCATION}/"
 
 # Run test.
 cd "kokoro"

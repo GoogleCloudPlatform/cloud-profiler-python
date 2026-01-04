@@ -91,7 +91,7 @@ retry pipenv install > /dev/null
 
 # Fetch agent.
 mkdir /tmp/agent
-retry gsutil cp gs://{{.GCSLocation}}/* /tmp/agent
+retry gcloud storage cp gs://{{.GCSLocation}}/* /tmp/agent
 
 # Install agent.
 retry pipenv run {{.PythonCommand}} -m pip install --ignore-installed "$(find /tmp/agent -name "google_cloud_profiler*")"
