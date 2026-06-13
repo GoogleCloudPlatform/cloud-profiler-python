@@ -24,6 +24,11 @@
 #include <vector>
 
 typedef struct {
+  // For a real frame on 3.11+, lineno carries the instruction byte offset
+  // captured in the SIGPROF handler (resolved to a source line later, with the
+  // GIL held, by PyCode_Addr2Line). For the pre-3.11 path it is the source
+  // line directly; for error/sentinel frames (py_code == nullptr) it is a
+  // CallTraceErrors code.
   int lineno;
   PyCodeObject *py_code;
 } CallFrame;
