@@ -159,10 +159,20 @@ void Profiler::Handle(int signum, siginfo_t *info, void *context) {
 }
 
 void GetFuncLoc(PyCodeObject *code_object, FuncLoc *func_loc) {
+  // The code-object pointer was captured in the signal handler and may be stale
+  // (freed, or its address reused). Validate it is a readable code object via
+  // SafeCopy before dereferencing its name/filename.
+  PyCodeObject code;
+  if (code_object == nullptr || !SafeCopy(&code, code_object, sizeof(code)) ||
+      Py_TYPE(reinterpret_cast<PyObject *>(&code)) != &PyCode_Type) {
+    func_loc->name = "unknown";
+    func_loc->filename = "unknown";
+    return;
+  }
   // Note that PyUnicode_AsUTF8 caches the char array in the unicodeobject
   // and the memory is released when the unicodeobject is deallocated.
-  const char *name = PyUnicode_AsUTF8(code_object->co_name);
-  const char *filename = PyUnicode_AsUTF8(code_object->co_filename);
+  const char *name = PyUnicode_AsUTF8(code.co_name);
+  const char *filename = PyUnicode_AsUTF8(code.co_filename);
   func_loc->name = name != nullptr ? name : "unknown";
   func_loc->filename = filename != nullptr ? filename : "unknown";
 }
@@ -204,26 +214,36 @@ PyObject *Profiler::PythonTraces() {
       const auto &frame = trace.first[i];
       FuncLoc func_loc;
       PyCodeObject *pointer = frame.py_code;
+      // For real frames, frame.lineno carries the instruction byte offset
+      // captured in the signal handler; it is resolved to a source line here,
+      // with the GIL held, via PyCode_Addr2Line on the live code object.
+      int lineno = frame.lineno;
       if (pointer == nullptr) {
         func_loc = {
             CallTraceErrorToName(static_cast<CallTraceErrors>(frame.lineno)),
             ""};
+      } else if (CodeDeallocHook::Find(pointer, &func_loc)) {
+        // The code object was deallocated during profiling (its name/filename
+        // were recorded by the hook), so its line table is no longer available.
+        // TODO: If multiple code objects are allocated at the same address, the
+        // func_loc stored by CodeDeallocHook may not belong to the sampled
+        // frame. At least we should mark the func_loc as invalid if we see an
+        // address is reused, probably by hooking PyCode_Type.tp_alloc.
+        lineno = 0;
       } else {
-        // All PyCodeObjects deallocated during profiling should be recorded
-        // by CodeDeallocHook. As we are holding GIL, no deallocation can happen
-        // elsewhere now. It's safe to assume that a PyCodeObject pointer not
-        // recorded by CodeDeallocHook points to a live object.
-        // TODO: If multiple code objects are allocated at the same
-        // address, the func_loc stored by CodeDeallocHook may not belong to the
-        // sampled frame. At least we should mark the func_loc as invalid if we
-        // see an address is reused, probably by hooking PyCode_Type.tp_alloc.
-        if (!CodeDeallocHook::Find(pointer, &func_loc)) {
-          GetFuncLoc(pointer, &func_loc);
-        }
+        // Not recorded by CodeDeallocHook: assume live (GIL held, no concurrent
+        // dealloc). Validate readability before resolving the line.
+        GetFuncLoc(pointer, &func_loc);
+        PyCodeObject code_check;
+        lineno =
+            (SafeCopy(&code_check, pointer, sizeof(code_check)) &&
+             Py_TYPE(reinterpret_cast<PyObject *>(&code_check)) == &PyCode_Type)
+                ? PyCode_Addr2Line(pointer, frame.lineno)
+                : 0;
       }
       PyObject *py_frame =
           Py_BuildValue("(ssi)", func_loc.name.c_str(),
-                        func_loc.filename.c_str(), frame.lineno);
+                        func_loc.filename.c_str(), lineno);
       if (py_frame == nullptr) {
         return nullptr;
       }

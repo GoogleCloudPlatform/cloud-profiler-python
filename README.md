@@ -16,7 +16,7 @@ information specific to Linux Alpine kernels, see
 
 ## Supported Python Versions
 
-Python >= 3.7 and <= 3.11
+Python >= 3.7 and <= 3.13
 
 ## Installation & usage
 
@@ -104,3 +104,4 @@ Exception ignored when trying to write to the signal wakeup fd
 
 see https://cloud.google.com/profiler/docs/troubleshooting#python-blocking for
 the cause and the workaround.
+
